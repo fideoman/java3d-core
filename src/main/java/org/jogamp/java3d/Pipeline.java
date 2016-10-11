@@ -36,10 +36,12 @@ import java.nio.FloatBuffer;
  * pipeline methods are defined here.
  */
 abstract class Pipeline {
-    // Supported rendering pipelines
+	 // Supported rendering pipelines
     enum Type {
         // Java rendering pipeline using Java Bindings for OpenGL
         JOGL,
+        
+        JOGL2ES2,
 
         // No-op rendering pipeline
         NOOP,
@@ -72,6 +74,8 @@ public Pipeline run() {
 		switch (pipeType) {
 		case JOGL:
 			return (Pipeline)Class.forName("org.jogamp.java3d.JoglPipeline").newInstance();
+		case JOGL2ES2:
+			return (Pipeline)Class.forName("org.jogamp.java3d.Jogl2es2Pipeline").newInstance();
 		case NOOP:
 			return (Pipeline)Class.forName("org.jogamp.java3d.NoopPipeline").newInstance();
 		}
@@ -129,6 +133,8 @@ public Pipeline run() {
         switch (pipelineType) {
         case JOGL:
             return "JOGL";
+        case JOGL2ES2:
+            return "JOGLES";
         case NOOP:
             return "NOOP";
         default:
@@ -144,6 +150,8 @@ public Pipeline run() {
         switch (pipelineType) {
         case JOGL:
             return "OpenGL";
+        case JOGL2ES2:
+            return "OpenGLES";
         case NOOP:
             return "None";
         default:

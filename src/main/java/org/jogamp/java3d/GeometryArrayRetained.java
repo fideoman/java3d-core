@@ -412,7 +412,24 @@ ArrayList<ArrayList<MorphRetained>> morphUserLists = null;
 	if (this.refCount <= 0) {
 	    isShared = false;
 	}
-    }
+	//PJ: big ugly hack for buffers
+	// only Jogl2es2Pipeline uses buffers
+	if(Pipeline.getPipeline() instanceof Jogl2es2Pipeline)
+	{
+		for(Context ctx: ctxExecutedOn)
+		{			
+			((Jogl2es2Pipeline)Pipeline.getPipeline()).registerClearBuffers(ctx, this);
+		}
+	}
+	
+	ctxExecutedOn.clear();
+	prevContext = null;
+	}
+	
+	//PJ: big ugly hack for buffers
+	protected HashSet<Context> ctxExecutedOn = new HashSet<Context>();
+	protected Context prevContext = null; // as I only expect one check versus prev to see if something new is come along
+	
 
     @Override
     void computeBoundingBox() {
@@ -2196,6 +2213,13 @@ ArrayList<ArrayList<MorphRetained>> morphUserLists = null;
 		 int screen,
                  boolean ignoreVertexColors) {
 
+    	//PJ: big ugly hack for buffers
+    	if(cv.ctx != prevContext)
+    	{
+    		ctxExecutedOn.add(cv.ctx);
+    		prevContext = cv.ctx;
+    	}
+    	
 	int cdirty;
 	boolean useAlpha = false;
 	Object[] retVal;

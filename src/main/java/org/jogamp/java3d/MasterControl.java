@@ -826,6 +826,8 @@ private static String getProperty(final String prop) {
             // Use default pipeline
         } else if (rendStr.equals("jogl")) {
             pipelineType = Pipeline.Type.JOGL;
+        } else if (rendStr.equals("jogl2es2")) {
+            pipelineType = Pipeline.Type.JOGL2ES2;
         } else if (rendStr.equals("noop")) {
             pipelineType = Pipeline.Type.NOOP;
         } else {
