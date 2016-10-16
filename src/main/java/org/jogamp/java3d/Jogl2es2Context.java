@@ -264,6 +264,7 @@ public class Jogl2es2Context extends JoglContext
 		public int glModelViewProjectionMatrix = -1;
 		public int glNormalMatrix = -1;
 		public int ignoreVertexColors = -1;
+		public int glFrontMaterialambient = -1;
 		public int glFrontMaterialdiffuse = -1;
 		public int glFrontMaterialemission = -1;
 		public int glFrontMaterialspecular = -1;
@@ -333,6 +334,7 @@ public class Jogl2es2Context extends JoglContext
 		public float polygonOffset;
 
 		public boolean ignoreVertexColors;
+		public Vector4f glFrontMaterialambient= new Vector4f();
 		public Vector4f glFrontMaterialdiffuse = new Vector4f();
 		public Vector3f glFrontMaterialemission = new Vector3f();
 		public Vector3f glFrontMaterialspecular = new Vector3f();
@@ -387,6 +389,7 @@ public class Jogl2es2Context extends JoglContext
 			polygonOffsetFactor = -1;
 			polygonOffset = -1;
 			ignoreVertexColors = false;
+			glFrontMaterialambient.set(-999f, -999f, -999f, -999f);
 			glFrontMaterialdiffuse.set(-999f, -999f, -999f, -999f);
 			glFrontMaterialemission.set(-999f, -999f, -999f);
 			glFrontMaterialspecular.set(-999f, -999f, -999f);
