@@ -337,36 +337,7 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 	// Canvas3D methods - native wrappers
 	//
 
-	@Override
-	@Deprecated
-	void createQueryContext(Canvas3D cv, Drawable drawable, boolean offScreen, int width, int height)
-	{
-		throw new UnsupportedOperationException("Not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
-	}
 
-	// This is the native for creating an offscreen buffer
-	@Override
-	@Deprecated
-	Drawable createOffScreenBuffer(Canvas3D cv, Context ctx, int width, int height)
-	{
-		throw new UnsupportedOperationException("Not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
-	}
-
-	// 'destroyContext' is called first if context exists
-	@Override
-	@Deprecated
-	void destroyOffScreenBuffer(Canvas3D cv, Context ctx, Drawable drawable)
-	{
-		throw new UnsupportedOperationException("Not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
-	}
-
-	// This is the native for reading the image from the offscreen buffer
-	@Override
-	@Deprecated
-	void readOffScreenBuffer(Canvas3D cv, Context ctx, int format, int dataType, Object data, int width, int height)
-	{
-		throw new UnsupportedOperationException("Not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
-	}
 
 	// This is the native method for doing accumulation.
 	@Override
