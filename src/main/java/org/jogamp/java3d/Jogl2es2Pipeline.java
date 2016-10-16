@@ -1917,7 +1917,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			//if (!MINIMISE_NATIVE_CALLS_FFP
 			//		|| (shaderProgramId != ctx.prevShaderProgram || !ctx.gl_state.glNormalMatrix.equals(ctx.currentNormalMat)))
 			//{
-			ctx.currentModelViewMat.mul(ctx.matrixUtil.deburnV, ctx.matrixUtil.deburnM);
+			ctx.currentModelViewMat.mul(ctx.currentViewMat, ctx.currentModelMat);
 			Jogl2es2MatrixUtil.transposeInvert(ctx.currentModelViewMat, ctx.currentNormalMat);
 
 			//gl.glUniformMatrix3fv(locs.glNormalMatrix, 1, false, ctx.toFB(ctx.currentNormalMat));
