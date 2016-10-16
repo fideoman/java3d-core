@@ -14,9 +14,10 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 			+ "Each Geomtry must have a format of GeometryArray.BY_REFERENCE = true and GeometryArray.INTERLEAVED = false. \n"//					
 			+ "Texture Coordinate generation is not supported, Texture Filter, Sharpen and combine are not supported. \n"//
 			+ "Texture3D, TextureCubeMap are not supported. \n"//
-			+ "Off screen buffers and decals are also not supported. \n"//
-			+ "Coordinates must be defind and float type, colors if defined must be float type. \n"//
-			+ "It is strongly recomended that you use the format GeometryArray.USE_NIO_BUFFER = true.";//
+			+ "Accum style anti-aliasing, rasters and decals are also not supported. \n"//
+			+ "Coordinates must be defind and float type, colors must be float type, if defined. \n"//
+			+ "It is strongly recomended that you use the format GeometryArray.USE_NIO_BUFFER = true. \n"//
+			+ "Note LineArray and LineStripArray will not render as nicely as the fixed function pipeline.";//
 
 	/**
 	 * Constructor for singleton JoglPipeline instance
@@ -40,10 +41,9 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 			int texCoordSetMapLen, int[] texUnitOffset, int numActiveTexUnitState, int vertexAttrCount, int[] vertexAttrSizes,
 			float[] varray, float[] carray, int cDirty)
 	{
-		throw new UnsupportedOperationException("Use of GeometryArrays (un-indexed) by Copy or interleaved not allowed.\n" + VALID_FORMAT_MESSAGE);
+		throw new UnsupportedOperationException(
+				"Use of GeometryArrays (un-indexed) by Copy or interleaved not allowed.\n" + VALID_FORMAT_MESSAGE);
 	}
-
-	
 
 	// used by GeometryArray by Reference in interleaved format with NIO buffer
 	@Override
@@ -166,7 +166,8 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 			float planeSw, float planeTx, float planeTy, float planeTz, float planeTw, float planeRx, float planeRy, float planeRz,
 			float planeRw, float planeQx, float planeQy, float planeQz, float planeQw, double[] vworldToEc)
 	{
-		throw new UnsupportedOperationException("Texture Coordinate generation is not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
+		throw new UnsupportedOperationException(
+				"Texture Coordinate generation is not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
 	}
 
 	// ---------------------------------------------------------------------
@@ -336,8 +337,6 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 	//
 	// Canvas3D methods - native wrappers
 	//
-
-
 
 	// This is the native method for doing accumulation.
 	@Override

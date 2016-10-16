@@ -6175,151 +6175,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	private Object mainThreadContext; // Fix for Bug 983
 
-	static boolean isOffscreenLayerSurfaceEnabled(Canvas3D cv)
-	{
-		if (cv.drawable == null || cv.offScreen)
-			return false;
-
-		JoglDrawable joglDrawble = (JoglDrawable) cv.drawable;
-		JAWTWindow jawtwindow = (JAWTWindow) joglDrawble.getNativeWindow();
-		if (jawtwindow == null)
-			return false;
-
-		return jawtwindow.isOffscreenLayerSurfaceEnabled();
-	}
-
-	static boolean hasFBObjectSizeChanged(JoglDrawable jdraw, int width, int height)
-	{
-		if (!(jdraw.getGLDrawable() instanceof GLFBODrawable))
-			return false;
-
-		FBObject fboBack = ((GLFBODrawable) jdraw.getGLDrawable()).getFBObject(GL.GL_BACK);
-		if (fboBack == null)
-			return false;
-
-		return (width != fboBack.getWidth() || height != fboBack.getHeight());
-	}
-
-	// Mac/JRE 7; called from Renderer when resizing is detected
-	// Implementation follows the approach in
-	// jogamp.opengl.GLDrawableHelper.resizeOffscreenDrawable(..)
-	@Override
-	void resizeOffscreenLayer(Canvas3D cv, int cvWidth, int cvHeight)
-	{
-		if (!isOffscreenLayerSurfaceEnabled(cv))
-			return;
-
-		JoglDrawable joglDrawable = (JoglDrawable) cv.drawable;
-		if (!hasFBObjectSizeChanged(joglDrawable, cvWidth, cvHeight))
-			return;
-
-		int newWidth = Math.max(1, cvWidth);
-		int newHeight = Math.max(1, cvHeight);
-
-		GLDrawable glDrawble = joglDrawable.getGLDrawable();
-		GLContext glContext = context(cv.ctx);
-
-		// Assuming glContext != null
-
-		final NativeSurface surface = glDrawble.getNativeSurface();
-		final ProxySurface proxySurface = (surface instanceof ProxySurface) ? (ProxySurface) surface : null;
-
-		final int lockRes = surface.lockSurface();
-
-		try
-		{
-			// propagate new size - seems not relevant here
-			if (proxySurface != null)
-			{
-				final UpstreamSurfaceHook ush = proxySurface.getUpstreamSurfaceHook();
-				if (ush instanceof UpstreamSurfaceHook.MutableSize)
-				{
-					((UpstreamSurfaceHook.MutableSize) ush).setSurfaceSize(newWidth, newHeight);
-				}
-			}
-			/*
-			 else if(DEBUG) { 
-			 // we have to assume surface contains the new size already, hence size check @ bottom 
-			 System.err.println("GLDrawableHelper.resizeOffscreenDrawable: Drawable's offscreen surface n.a. ProxySurface, but "
-			 +ns.getClass().getName()+": "+ns); }
-			 */
-
-			GL2ES2 gl = glContext.getGL().getGL2ES2();
-
-			// FBO : should be the default case on Mac OS X
-			if (glDrawble instanceof GLFBODrawable)
-			{
-
-				// Resize GLFBODrawable
-				// TODO msaa gets lost
-				// ((GLFBODrawable)glDrawble).resetSize(gl);
-
-				// Alternative: resize GL_BACK FBObject directly,
-				// if multisampled the FBO sink (GL_FRONT) will be resized
-				// before the swap is executed
-				int numSamples = ((GLFBODrawable) glDrawble).getChosenGLCapabilities().getNumSamples();
-				FBObject fboObjectBack = ((GLFBODrawable) glDrawble).getFBObject(GL.GL_BACK);
-				fboObjectBack.reset(gl, newWidth, newHeight, numSamples/* , false */); // false = don't reset
-				// SamplingSinkFBO
-				// immediately
-				fboObjectBack.bind(gl);
-
-				// If double buffered without antialiasing the GL_FRONT FBObject
-				// will be resized by glDrawble after the next swap-call
-			}
-			// pbuffer - not tested because Mac OS X 10.7+ supports FBO
-			else
-			{
-				// Create new GLDrawable (pbuffer) and update the coresponding
-				// GLContext
-
-				final GLContext currentContext = GLContext.getCurrent();
-				final GLDrawableFactory factory = glDrawble.getFactory();
-
-				// Ensure to sync GL command stream
-				if (currentContext != glContext)
-				{
-					glContext.makeCurrent();
-				}
-				gl.glFinish();
-				glContext.release();
-
-				if (proxySurface != null)
-				{
-					proxySurface.enableUpstreamSurfaceHookLifecycle(false);
-				}
-
-				try
-				{
-					glDrawble.setRealized(false);
-					// New GLDrawable
-					glDrawble = factory.createGLDrawable(surface);
-					glDrawble.setRealized(true);
-
-					joglDrawable.setGLDrawable(glDrawble);
-				}
-				finally
-				{
-					if (proxySurface != null)
-					{
-						proxySurface.enableUpstreamSurfaceHookLifecycle(true);
-					}
-				}
-
-				glContext.setGLDrawable(glDrawble, true); // re-association
-
-				// make current last current context
-				if (currentContext != null)
-				{
-					currentContext.makeCurrent();
-				}
-			}
-		}
-		finally
-		{
-			surface.unlockSurface();
-		}
-	}
+	
 
 	// Fix for Bug 983
 	private void checkAppContext()
@@ -6467,7 +6323,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			// Issue 417: JOGL: Mip-mapped NPOT textures rendered incorrectly
 			// J3D images are aligned to 1 byte
-			gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
+			//gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
 
 			// Workaround for issue 400: Enable separate specular by default
 			// gl.glLightModeli(GL2.GL_LIGHT_MODEL_COLOR_CONTROL,
@@ -6602,6 +6458,152 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 	}
 
+	//Offscreen rendering methods below -----------------------
+	static boolean isOffscreenLayerSurfaceEnabled(Canvas3D cv)
+	{
+		if (cv.drawable == null || cv.offScreen)
+			return false;
+
+		JoglDrawable joglDrawble = (JoglDrawable) cv.drawable;
+		JAWTWindow jawtwindow = (JAWTWindow) joglDrawble.getNativeWindow();
+		if (jawtwindow == null)
+			return false;
+
+		return jawtwindow.isOffscreenLayerSurfaceEnabled();
+	}
+
+	static boolean hasFBObjectSizeChanged(JoglDrawable jdraw, int width, int height)
+	{
+		if (!(jdraw.getGLDrawable() instanceof GLFBODrawable))
+			return false;
+
+		FBObject fboBack = ((GLFBODrawable) jdraw.getGLDrawable()).getFBObject(GL.GL_BACK);
+		if (fboBack == null)
+			return false;
+
+		return (width != fboBack.getWidth() || height != fboBack.getHeight());
+	}
+
+	// Mac/JRE 7; called from Renderer when resizing is detected
+	// Implementation follows the approach in
+	// jogamp.opengl.GLDrawableHelper.resizeOffscreenDrawable(..)
+	@Override
+	void resizeOffscreenLayer(Canvas3D cv, int cvWidth, int cvHeight)
+	{
+		if (!isOffscreenLayerSurfaceEnabled(cv))
+			return;
+
+		JoglDrawable joglDrawable = (JoglDrawable) cv.drawable;
+		if (!hasFBObjectSizeChanged(joglDrawable, cvWidth, cvHeight))
+			return;
+
+		int newWidth = Math.max(1, cvWidth);
+		int newHeight = Math.max(1, cvHeight);
+
+		GLDrawable glDrawble = joglDrawable.getGLDrawable();
+		GLContext glContext = context(cv.ctx);
+
+		// Assuming glContext != null
+
+		final NativeSurface surface = glDrawble.getNativeSurface();
+		final ProxySurface proxySurface = (surface instanceof ProxySurface) ? (ProxySurface) surface : null;
+
+		final int lockRes = surface.lockSurface();
+
+		try
+		{
+			// propagate new size - seems not relevant here
+			if (proxySurface != null)
+			{
+				final UpstreamSurfaceHook ush = proxySurface.getUpstreamSurfaceHook();
+				if (ush instanceof UpstreamSurfaceHook.MutableSize)
+				{
+					((UpstreamSurfaceHook.MutableSize) ush).setSurfaceSize(newWidth, newHeight);
+				}
+			}
+			/*
+			 else if(DEBUG) { 
+			 // we have to assume surface contains the new size already, hence size check @ bottom 
+			 System.err.println("GLDrawableHelper.resizeOffscreenDrawable: Drawable's offscreen surface n.a. ProxySurface, but "
+			 +ns.getClass().getName()+": "+ns); }
+			 */
+
+			GL2ES2 gl = glContext.getGL().getGL2ES2();
+
+			// FBO : should be the default case on Mac OS X
+			if (glDrawble instanceof GLFBODrawable)
+			{
+
+				// Resize GLFBODrawable
+				// TODO msaa gets lost
+				// ((GLFBODrawable)glDrawble).resetSize(gl);
+
+				// Alternative: resize GL_BACK FBObject directly,
+				// if multisampled the FBO sink (GL_FRONT) will be resized
+				// before the swap is executed
+				int numSamples = ((GLFBODrawable) glDrawble).getChosenGLCapabilities().getNumSamples();
+				FBObject fboObjectBack = ((GLFBODrawable) glDrawble).getFBObject(GL.GL_BACK);
+				fboObjectBack.reset(gl, newWidth, newHeight, numSamples/* , false */); // false = don't reset
+				// SamplingSinkFBO
+				// immediately
+				fboObjectBack.bind(gl);
+
+				// If double buffered without antialiasing the GL_FRONT FBObject
+				// will be resized by glDrawble after the next swap-call
+			}
+			// pbuffer - not tested because Mac OS X 10.7+ supports FBO
+			else
+			{
+				// Create new GLDrawable (pbuffer) and update the coresponding
+				// GLContext
+
+				final GLContext currentContext = GLContext.getCurrent();
+				final GLDrawableFactory factory = glDrawble.getFactory();
+
+				// Ensure to sync GL command stream
+				if (currentContext != glContext)
+				{
+					glContext.makeCurrent();
+				}
+				gl.glFinish();
+				glContext.release();
+
+				if (proxySurface != null)
+				{
+					proxySurface.enableUpstreamSurfaceHookLifecycle(false);
+				}
+
+				try
+				{
+					glDrawble.setRealized(false);
+					// New GLDrawable
+					glDrawble = factory.createGLDrawable(surface);
+					glDrawble.setRealized(true);
+
+					joglDrawable.setGLDrawable(glDrawble);
+				}
+				finally
+				{
+					if (proxySurface != null)
+					{
+						proxySurface.enableUpstreamSurfaceHookLifecycle(true);
+					}
+				}
+
+				glContext.setGLDrawable(glDrawble, true); // re-association
+
+				// make current last current context
+				if (currentContext != null)
+				{
+					currentContext.makeCurrent();
+				}
+			}
+		}
+		finally
+		{
+			surface.unlockSurface();
+		}
+	}
 	// This is the native for creating an offscreen buffer
 	@Override
 	Drawable createOffScreenBuffer(Canvas3D cv, Context ctx, int width, int height)
@@ -6719,8 +6721,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 		// else pbuffer
 
-		gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, width);
-		gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
+		//gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, width);
+		//gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
 
 		int type = 0;
 
