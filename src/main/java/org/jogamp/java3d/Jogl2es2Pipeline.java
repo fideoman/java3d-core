@@ -32,7 +32,6 @@ import org.jogamp.java3d.Jogl2es2Context.LightData;
 import org.jogamp.java3d.Jogl2es2Context.LocationData;
 import org.jogamp.java3d.Jogl2es2Context.ProgramData;
 import org.jogamp.vecmath.SingularMatrixException;
-import org.jogamp.vecmath.Vector3f;
 import org.jogamp.vecmath.Vector4f;
 
 import com.jogamp.common.nio.Buffers;
@@ -421,8 +420,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			boolean textureDefined = ((vdefined & GeometryArrayRetained.TEXCOORD_FLOAT) != 0);
 
 			// can it change ever? (GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of this feature)
-			boolean morphable = (((GeometryArray) geo.source).capabilityBits & (1L << GeometryArray.ALLOW_REF_DATA_WRITE)) != 0L
-					|| (((GeometryArray) geo.source).capabilityBits & (1L << GeometryArray.ALLOW_COORDINATE_WRITE)) != 0L;
+			boolean morphable = geo.source.getCapability(GeometryArray.ALLOW_REF_DATA_WRITE)
+					|| geo.source.getCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
 
 			// not required second time around for VAO (except morphable coords)
 			boolean bindingRequired = true;
@@ -561,7 +560,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			if (floatColorsDefined && locs.glColor != -1 && !ignoreVertexColors)
 			{
 				// if ((cDirty & GeometryArrayRetained.COLOR_CHANGED) != 0)
-				boolean changable = (((GeometryArray) geo.source).capabilityBits & (1L << GeometryArray.ALLOW_COLOR_WRITE)) != 0L;
+				boolean changable = geo.source.getCapability(GeometryArray.ALLOW_COLOR_WRITE);
 				if (changable)
 				{
 					fclrs.position(0);
@@ -572,7 +571,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			if (normalsDefined && locs.glNormal != -1)
 			{
 				// if ((cDirty & GeometryArrayRetained.NORMAL_CHANGED) != 0)
-				boolean changable = (((GeometryArray) geo.source).capabilityBits & (1L << GeometryArray.ALLOW_NORMAL_WRITE)) != 0L;
+				boolean changable = geo.source.getCapability(GeometryArray.ALLOW_NORMAL_WRITE);
 				if (changable)
 				{
 					norms.position(0);
@@ -589,8 +588,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					if (attribLoc != null && attribLoc.intValue() != -1)
 					{
 						// if ((cDirty & GeometryArrayRetained.VATTR_CHANGED) != 0)
-						boolean changable = (((GeometryArray) geo.source).capabilityBits
-								& (1L << GeometryArray.ALLOW_VERTEX_ATTR_WRITE)) != 0L;
+						boolean changable = geo.source.getCapability(GeometryArray.ALLOW_VERTEX_ATTR_WRITE);
 						if (changable)
 						{
 							FloatBuffer vertexAttrs = vertexAttrBufs[index];
@@ -612,8 +610,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					int texSet = texCoordSetMap[texUnit];
 					if (texSet != -1 && locs.glMultiTexCoord[texSet] != -1 && !texSetsBound[texSet])
 					{
-						boolean changable = (((GeometryArray) geo.source).capabilityBits
-								& (1L << GeometryArray.ALLOW_TEXCOORD_WRITE)) != 0L;
+						boolean changable = geo.source.getCapability(GeometryArray.ALLOW_TEXCOORD_WRITE);
 						if (changable)
 						{
 							FloatBuffer buf = (FloatBuffer) texCoords[texSet];
@@ -1140,8 +1137,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			boolean textureDefined = ((vdefined & GeometryArrayRetained.TEXCOORD_FLOAT) != 0);
 
 			//can it change ever? (GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of this feature)			 
-			boolean morphable = (((GeometryArray) geo.source).capabilityBits & (1L << GeometryArray.ALLOW_REF_DATA_WRITE)) != 0L
-					|| (((GeometryArray) geo.source).capabilityBits & (1L << GeometryArray.ALLOW_COORDINATE_WRITE)) != 0L;
+			boolean morphable = geo.source.getCapability(GeometryArray.ALLOW_REF_DATA_WRITE)
+					|| geo.source.getCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
 
 			// not required second time around for VAO
 			// however as morphables coords are swapped they always get rebound each draw
@@ -1279,7 +1276,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			if (floatColorsDefined && locs.glColor != -1 && !ignoreVertexColors)
 			{
 				// if ((cDirty & GeometryArrayRetained.COLOR_CHANGED) != 0)
-				boolean changable = (((GeometryArray) geo.source).capabilityBits & (1L << GeometryArray.ALLOW_COLOR_WRITE)) != 0L;
+				boolean changable = geo.source.getCapability(GeometryArray.ALLOW_COLOR_WRITE);
 				if (changable)
 				{
 					fclrs.position(0);
@@ -1290,7 +1287,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			if (normalsDefined && locs.glNormal != -1)
 			{
 				// if ((cDirty & GeometryArrayRetained.NORMAL_CHANGED) != 0)
-				boolean changable = (((GeometryArray) geo.source).capabilityBits & (1L << GeometryArray.ALLOW_NORMAL_WRITE)) != 0L;
+				boolean changable = geo.source.getCapability(GeometryArray.ALLOW_NORMAL_WRITE);
 				if (changable)
 				{
 					norms.position(0);
@@ -1307,8 +1304,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					if (attribLoc != null && attribLoc.intValue() != -1)
 					{
 						// if ((cDirty & GeometryArrayRetained.VATTR_CHANGED) != 0)
-						boolean changable = (((GeometryArray) geo.source).capabilityBits
-								& (1L << GeometryArray.ALLOW_VERTEX_ATTR_WRITE)) != 0L;
+						boolean changable = geo.source.getCapability(GeometryArray.ALLOW_VERTEX_ATTR_WRITE);
 						if (changable)
 						{
 							FloatBuffer vertexAttrs = vertexAttrBufs[index];
@@ -1330,8 +1326,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					int texSet = texCoordSetMap[texUnit];
 					if (texSet != -1 && locs.glMultiTexCoord[texSet] != -1 && !texSetsBound[texSet])
 					{
-						boolean changable = (((GeometryArray) geo.source).capabilityBits
-								& (1L << GeometryArray.ALLOW_TEXCOORD_WRITE)) != 0L;
+						boolean changable = geo.source.getCapability(GeometryArray.ALLOW_TEXCOORD_WRITE);
 						if (changable)
 						{
 							FloatBuffer buf = (FloatBuffer) texCoords[texSet];
@@ -2316,8 +2311,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			if (gd.geoToCoordBuf == -1)
 			{
 				// can it change ever? (GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of this feature)
-				boolean morphable = (((GeometryArray) geo.source).capabilityBits & (1L << GeometryArray.ALLOW_REF_DATA_WRITE)) != 0L
-						|| (((GeometryArray) geo.source).capabilityBits & (1L << GeometryArray.ALLOW_COORDINATE_WRITE)) != 0L;
+				boolean morphable = geo.source.getCapability(GeometryArray.ALLOW_REF_DATA_WRITE)
+						|| geo.source.getCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
 
 				fverts.position(0);
 
@@ -6175,8 +6170,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	private Object mainThreadContext; // Fix for Bug 983
 
-	
-
 	// Fix for Bug 983
 	private void checkAppContext()
 	{
@@ -6604,6 +6597,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			surface.unlockSurface();
 		}
 	}
+
 	// This is the native for creating an offscreen buffer
 	@Override
 	Drawable createOffScreenBuffer(Canvas3D cv, Context ctx, int width, int height)

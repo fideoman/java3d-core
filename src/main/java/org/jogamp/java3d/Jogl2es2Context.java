@@ -15,37 +15,6 @@ import com.jogamp.opengl.GLContext;
 
 public class Jogl2es2Context extends JoglContext
 {
-	/*NOTES 
-	* must carefully respond to deprecated methods with a detailed unsupported method
-	* must comment heavily in GeometryArrayRetained regarding the new use of buffers and contexts
-	* consider SceneGraphObject capabilitybits change 
-	* SceneGraphObject setDefaultReadCapabilities significant change, what to do?
-	* 
-	* 
-	* consider that asking for a certain pipeline on command line, so get that prop in along with the default read!
-	* default pipeline is the new jogles
-	* 
-	* Need to document the full range of options in a special default shader based on zz_default but possibly just in a java class
-	*  
-	* 	 
-	*/
-
-	// Step to convert
-	// 1. replace all SpareArray< with HashMap<Integer, JoglesContext and JoglesPipeline
-	// 2. GeometryArrayRetained must add context tracking for buffers
-	// 3. remove all blocks relating to ATTEMPT_UBO
-	// 4. remove all calls relating to ATTEMPT_OPTIMIZED_VERTICES
-	// 5. swap tcBufIds.keyAt(i) for a key foreach of hashmap vaBufIds 
-	// 6. update Pipeline to include the new type
-	// 7. update MasterControl to include jogles pipeline
-	// 8. JoglContext ctx = new JoglContext(glContext); in createNewContext becomes JoglesContext ctx = new JoglesContext(glContext);
-	// 9. and again for createQueryContext
-	// 10. rename jogles* to jogl2es2* and delete the triangle array
-	//
-	// 99. rename the classes Jogl2es3... remember to search cause of comments, and the Pipeline reflection call
-	// 
-	//
-
 	//pre-casting for speed
 	public GL2ES2 gl2es2 = null;
 	public GL2ES3 gl2es3 = null;
