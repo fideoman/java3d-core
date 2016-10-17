@@ -1,0 +1,55 @@
+Java3D Readme
+===
+The source code for the j3d-core project is copyrighted code that is
+licensed to individuals or companies who download or otherwise access
+the code.
+
+The copyright notice for this project is in COPYRIGHT.txt
+
+The source code license information for this project is in LICENSE.txt
+
+Additional information and license restrictions for third party source
+code are found in the THIRDPARTY-LICENSE-*.txt files.
+
+##Building Java3D
+
+The instructions below are based on eclipse, however they should work on most common IDE's
+
+Clone this repo, make note of the root folder you use
+Right click on the Project Explorer view and select Import
+Expand the Maven group and select Existing Maven Project and click Next
+For Root directory click Browse and find the root folder that you cloned the repo into
+There should be a pom.xml that is ticked in the Projects area 
+Click Finish
+Repeat for java3d-utils 
+Repeat for vecmath
+If you are new to Java3D then it might be good to repeat for java3d-examples too.
+
+Now if you right click on
+org.jdesktop.j3d.examples.hello_universe.HelloUniverse.java
+Run as ... Java Application
+You should see Java3D working
+
+##Documentation
+
+For javadocs see
+http://download.java.net/media/java3d/javadoc/1.5.0/
+or
+https://github.com/scijava/java3d-javadoc
+though neither is correctly up to date
+
+For the basic overview guide see
+http://web.archive.org/web/20120626010824/http://java.sun.com/developer/onlineTraining/java3d/index.html
+This needs to be included in java3d-core as a zip and referenced
+For a description of performance see java3d-core\docs\perf_guide.txt
+
+For tutorials see
+http://www.java3d.org/tutorial.html
+
+
+For the FAQ see
+http://jogamp.org/wiki/index.php/Java3D_FAQ
+
+
+For assistance contact the forum at 
+http://forum.jogamp.org/
