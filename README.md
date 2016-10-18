@@ -33,24 +33,23 @@ You should see Java3D working
 ##Documentation
 
 ###Javadocs  
-see  
+.  
 <http://download.java.net/media/java3d/javadoc/1.5.0/>  
 or  
 <https://github.com/scijava/java3d-javadoc>  
 though neither is correctly up to date  
 
 ###Basic overview guide  
-see  
-<http://web.archive.org/web/20120626010824/http://java.sun.com/developer/onlineTraining/java3d/index.html>  
-This needs to be included in java3d-core as a zip and referenced  
-For a description of performance see [/docs/perf_guide.txt](../docs/perf_guide.txt)  
+
+For the best kick off point see [/docs/tutorial/](/docs/tutorial/)   
+For a description of performance see [/docs/perf_guide.txt](/docs/perf_guide.txt)  
 
 ###Tutorials  
-see  
+.  
 <http://www.java3d.org/tutorial.html>  
 
 ###FAQ  
-see  
+.  
 <http://jogamp.org/wiki/index.php/Java3D_FAQ>  
 
 ###General assistance  
