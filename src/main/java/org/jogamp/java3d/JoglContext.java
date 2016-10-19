@@ -36,7 +36,7 @@ import com.jogamp.opengl.GLContext;
  * Graphics context objects for Jogl rendering pipeline.
  */
 class JoglContext implements Context {
-  private GLContext  context;
+  protected GLContext  context;
 
   // Properties we need to keep track of for efficiency
   private int maxTexCoordSets;

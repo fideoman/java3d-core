@@ -39,8 +39,13 @@ abstract class Pipeline {
 	 // Supported rendering pipelines
     enum Type {
         // Java rendering pipeline using Java Bindings for OpenGL
+    	// This pipeline will use the newest GL profile that support the fixed function pipeline
+    	// https://www.opengl.org/wiki/Fixed_Function_Pipeline
         JOGL,
         
+        // Java rendering pipeline using Java Bindings for OpenGL
+    	// This pipeline will use the newest GL profile that supports the intersection of GL2 and ES2
+    	// This will not use any fixed function pipeline features (e.g. you must attach shaders)
         JOGL2ES2,
 
         // No-op rendering pipeline
@@ -134,7 +139,7 @@ public Pipeline run() {
         case JOGL:
             return "JOGL";
         case JOGL2ES2:
-            return "JOGLES";
+            return "JOGL2ES2";
         case NOOP:
             return "NOOP";
         default:
@@ -151,7 +156,7 @@ public Pipeline run() {
         case JOGL:
             return "OpenGL";
         case JOGL2ES2:
-            return "OpenGLES";
+            return "OpenGL";
         case NOOP:
             return "None";
         default:

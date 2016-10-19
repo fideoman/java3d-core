@@ -43,6 +43,8 @@ though neither is correctly up to date
 
 For the best kick off point see [/docs/tutorial/](/docs/tutorial/)   
 For a description of performance see [/docs/perf_guide.txt](/docs/perf_guide.txt)  
+Old Java3d project site with lots of information <https://java.net/projects/java3d>
+General technical tips <https://java.net/projects/java3d/pages/Java3DApplicationDev>  
 
 ###Tutorials  
 .  

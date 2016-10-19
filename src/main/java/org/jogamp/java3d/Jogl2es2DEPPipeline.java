@@ -1,3 +1,29 @@
+/*
+ * Copyright 1998-2008 Sun Microsystems, Inc.  All Rights Reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Sun designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Sun in the LICENSE file that accompanied this code.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
+ * CA 95054 USA or visit www.sun.com if you need additional information or
+ * have any questions.
+ *
+ */
+
 package org.jogamp.java3d;
 
 import java.nio.FloatBuffer;
@@ -11,7 +37,8 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 	public static final String VALID_FORMAT_MESSAGE = "The Gl2ES2 pipeline only supports a subset of the Geometry data types and formats. \n"//
 			+ "You can now only pass in a TriangleArray, TriangleStripArray, TriangleFanArray, \n"//
 			+ "LineArray, LineStripArray, PointArray and the 6 Indexed equivilents (effectively QuadArray is removed). \n"//
-			+ "Each Geomtry must have a format of GeometryArray.BY_REFERENCE = true and GeometryArray.INTERLEAVED = false. \n"//					
+			+ "Each Geometry must have a format of GeometryArray.BY_REFERENCE = true and GeometryArray.INTERLEAVED = false. \n"//		
+			+ "For non-indexed Geometry the format must also be GeometryArray.USE_NIO_BUFFER = true. \n"//	
 			+ "Texture Coordinate generation is not supported, Texture Filter, Sharpen and combine are not supported. \n"//
 			+ "Texture3D, TextureCubeMap are not supported. \n"//
 			+ "Accum style anti-aliasing, rasters and decals are also not supported. \n"//
