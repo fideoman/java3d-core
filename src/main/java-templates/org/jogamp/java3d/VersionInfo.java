@@ -28,7 +28,7 @@ package org.jogamp.java3d;
 
 /**
  * The VersionInfo class contains strings that describe the implementation
- * and specification version of the javax.media.j3d pacakge.  These strings
+ * and specification version of the org.jogamp.java3d pacakge.  These strings
  * are made available as properties obtained from the VirtualUniverse class.
  *
  * <h4>NOTE TO DEVELOPERS:</h4>
