@@ -7696,6 +7696,11 @@ static boolean hasFBObjectSizeChanged(JoglDrawable jdraw, int width, int height)
         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
 
         gl.glEnable(GL.GL_TEXTURE_2D);
+        
+        gl.glPushAttrib(GL2.GL_TRANSFORM_BIT);
+        gl.glMatrixMode(GL.GL_TEXTURE);
+        gl.glLoadIdentity();
+        gl.glPopAttrib();
 
         // loaded identity modelview and projection matrix
         gl.glMatrixMode(GL2.GL_PROJECTION);
