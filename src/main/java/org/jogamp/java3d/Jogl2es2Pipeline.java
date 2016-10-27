@@ -1428,7 +1428,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	//
 	// IndexedGeometryArrayRetained methods
 	//
- 
 
 	// by-copy or interleaved, by reference, Java arrays
 	@Override
@@ -1770,8 +1769,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			}
 
 			//////////////////////////////////////////////
-			if (geo_type == GeometryRetained.GEO_TYPE_TRI_STRIP_SET || geo_type == GeometryRetained.GEO_TYPE_TRI_FAN_SET
-					|| geo_type == GeometryRetained.GEO_TYPE_LINE_STRIP_SET)
+			if (geo_type == GeometryRetained.GEO_TYPE_INDEXED_TRI_STRIP_SET || geo_type == GeometryRetained.GEO_TYPE_INDEXED_TRI_FAN_SET
+					|| geo_type == GeometryRetained.GEO_TYPE_INDEXED_LINE_STRIP_SET)
 			{
 				int primType = 0;
 
@@ -1779,17 +1778,17 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				// each pair, what I want is a line between each set of 3 (that are not jumpers)
 
 				if (ctx.polygonMode == PolygonAttributes.POLYGON_LINE)
-					geo_type = GeometryRetained.GEO_TYPE_LINE_STRIP_SET;
+					geo_type = GeometryRetained.GEO_TYPE_INDEXED_LINE_STRIP_SET;
 
 				switch (geo_type)
 				{
-				case GeometryRetained.GEO_TYPE_TRI_STRIP_SET:
+				case GeometryRetained.GEO_TYPE_INDEXED_TRI_STRIP_SET:
 					primType = GL2ES2.GL_TRIANGLE_STRIP;
 					break;
-				case GeometryRetained.GEO_TYPE_TRI_FAN_SET:
+				case GeometryRetained.GEO_TYPE_INDEXED_TRI_FAN_SET:
 					primType = GL2ES2.GL_TRIANGLE_FAN;
 					break;
-				case GeometryRetained.GEO_TYPE_LINE_STRIP_SET:
+				case GeometryRetained.GEO_TYPE_INDEXED_LINE_STRIP_SET:
 					primType = GL2ES2.GL_LINE_LOOP;
 					break;
 				}
