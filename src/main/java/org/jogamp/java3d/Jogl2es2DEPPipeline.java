@@ -22,8 +22,6 @@
 
 package org.jogamp.java3d;
 
-import java.nio.FloatBuffer;
-
 /**
  * Separated from the actual pipeline for clarity of features that are not supported from the 
  * Pipeline class for the JOGL2ES2 rendering pipeline.
@@ -38,8 +36,6 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 			+ "Accum style anti-aliasing, rasters and decals are also not supported. \n"//
 			+ "Coordinates must be defined and float type, colors must be float type, if defined. \n"//
 			+ "It is strongly recomended that you use the format GeometryArray.USE_NIO_BUFFER = true. \n"//
-			+ "Use of IndexedGeometry by-copy or interleaved, by reference, Java arrays not yet implemented.\n" //
-			+ "Use of IndexedGeometry interleaved, by reference, nio buffer not yet implemented.\n"//
 			+ "Note LineArray and LineStripArray will not render as nicely as the fixed function pipeline.";//
 
 	/**
@@ -48,36 +44,6 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 	protected Jogl2es2DEPPipeline()
 	{
 
-	}
-
-	// ---------------------------------------------------------------------
-
-	//
-	// IndexedGeometryArrayRetained methods
-	//
-
-	// by-copy or interleaved, by reference, Java arrays
-	@Override
-	@Deprecated
-	void executeIndexedGeometry(Context ctx, GeometryArrayRetained geo, int geo_type, boolean isNonUniformScale, boolean useAlpha,
-			boolean ignoreVertexColors, int initialIndexIndex, int indexCount, int vertexCount, int vformat, int vertexAttrCount,
-			int[] vertexAttrSizes, int texCoordSetCount, int[] texCoordSetMap, int texCoordSetMapLen, int[] texCoordSetOffset,
-			int numActiveTexUnitState, float[] varray, float[] carray, int cdirty, int[] indexCoord)
-	{
-		throw new UnsupportedOperationException(
-				"Use of IndexedGeometry by-copy or interleaved, by reference, Java arrays not yet implemented.\n" + VALID_FORMAT_MESSAGE);
-	}
-
-	// interleaved, by reference, nio buffer
-	@Override
-	@Deprecated
-	void executeIndexedGeometryBuffer(Context ctx, GeometryArrayRetained geo, int geo_type, boolean isNonUniformScale, boolean useAlpha,
-			boolean ignoreVertexColors, int initialIndexIndex, int indexCount, int vertexCount, int vformat, int texCoordSetCount,
-			int[] texCoordSetMap, int texCoordSetMapLen, int[] texCoordSetOffset, int numActiveTexUnitState, FloatBuffer vdata,
-			float[] carray, int cDirty, int[] indexCoord)
-	{
-		throw new UnsupportedOperationException(
-				"Use of IndexedGeometry interleaved, by reference, nio buffer not yet implemented.\n" + VALID_FORMAT_MESSAGE);
 	}
 
 	// used for GeometryArrays  (this means DisplayList usage)
