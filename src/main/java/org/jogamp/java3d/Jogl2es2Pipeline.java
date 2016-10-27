@@ -93,7 +93,7 @@ import com.jogamp.opengl.Threading;
  */
 class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 {
-	private static final boolean DO_OUTPUT_ERRORS = true;
+	private static final boolean DO_OUTPUT_ERRORS = false;
 	// Currently prints for entry points already implemented
 	static final boolean VERBOSE = false;
 	// Debugging output for graphics configuration selection
@@ -111,7 +111,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	private static final boolean MINIMISE_NATIVE_SHADER = true;
 	private static final boolean MINIMISE_NATIVE_CALLS_OTHER = true;
 
-	private static final boolean NEVER_RELEASE_CONTEXT = true;
+	private static final boolean NEVER_RELEASE_CONTEXT = false;
 
 	/**
 	 * Constructor for singleton JoglPipeline instance
@@ -189,10 +189,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						HashMap<Integer, Integer> tcBufIds = gd.geoToTexCoordsBuf;
 						if (tcBufIds != null)
 						{
-
 							for (Integer tcBufId : tcBufIds.keySet())
 							{
-
 								if (tcBufId != null)
 									gl.glDeleteBuffers(1, new int[] { tcBufId.intValue() }, 0);
 							}
@@ -202,7 +200,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						HashMap<Integer, Integer> vaBufIds = gd.geoToVertAttribBuf;
 						if (vaBufIds != null)
 						{
-
 							for (Integer vaBufId : vaBufIds.keySet())
 							{
 								if (vaBufId != null)
@@ -651,7 +648,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			}
 		}
 		else
-
 		{
 			if (!NO_PROGRAM_WARNING_GIVEN)
 				System.err.println("Execute called with no shader Program in use!");
@@ -912,8 +908,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			setFFPAttributes(ctx, gl, shaderProgramId, pd, vdefined);
 
-			// If any buffers need loading do that now and skip a render for
-			// this frame
+			// If any buffers need loading do that now
 			GeometryData gd = loadAllBuffers(ctx, gl, geo, ignoreVertexColors, vertexCount, vformat, vdefined, fverts, dverts, fclrs, bclrs,
 					norms, vertexAttrCount, vertexAttrSizes, vertexAttrBufs, texCoordMapLength, texCoordSetMap, texStride, texCoords);
 
@@ -1194,7 +1189,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				}
 				else if (locs.glColor != -1)
 				{
-					// ignoreVertexcolors willhave been set in FFP now as the glColors is unbound
+					// ignoreVertexcolors will have been set in FFP now as the glColors is unbound
 					gl.glDisableVertexAttribArray(locs.glColor);
 					if (OUTPUT_PER_FRAME_STATS)
 						ctx.perFrameStats.glDisableVertexAttribArray++;
@@ -2622,8 +2617,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				if (OUTPUT_PER_FRAME_STATS)
 					ctx.perFrameStats.glDrawStripElements++;
 
-				// note only the first count so multi strips is worng here,
-				// but...
+				// note only the first count so multi-strips is wrong here, but...
 				if (OUTPUT_PER_FRAME_STATS)
 					ctx.perFrameStats.indexCount += gd.geoToIndBufSize;
 
@@ -2752,10 +2746,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	}
 
 	/**
-	 * Over time we have had things recorded and in FFP they are considered
-	 * current state in programmable we have to push them across manually each
-	 * time recorded in JoglesContext
-	 * 
+	 * Over time we have had things recorded and in FFP they are considered current state
+	 * in programmable we have to push them across manually each time recorded in JoglesContext
 	 * @param gl
 	 * @param vdefined
 	 */
@@ -2772,6 +2764,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		//boolean normalsDefined = ((vdefined & GeometryArrayRetained.NORMAL_FLOAT) != 0);
 		//boolean vattrDefined = ((vdefined & GeometryArrayRetained.VATTR_FLOAT) != 0);
 		//boolean textureDefined = ((vdefined & GeometryArrayRetained.TEXCOORD_FLOAT) != 0);
+
 		// vertex colors MUST be ignored if no glColors set
 		boolean ignoreVertexColors = (!floatColorsDefined && !byteColorsDefined) || ctx.renderingData.ignoreVertexColors;
 
@@ -2864,7 +2857,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			//	}
 		}
 		if (locs.glModelViewMatrixInverse != -1)
-		{// minimise not working due to late calc of matrix
+		{
+			// minimise not working due to late calc of matrix
 			//if (!MINIMISE_NATIVE_CALLS_FFP || (shaderProgramId != ctx.prevShaderProgram
 			//		|| !ctx.gl_state.glModelViewMatrixInverse.equals(ctx.currentModelViewMatInverse)))
 			//{
@@ -3049,10 +3043,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			}
 		}
 
-		//currentEnabledLights
+		// currentEnabledLights
 
 		// TODO: add the other attributes of spot and point light in
-		//For now using first point light, but gonna need to put em all in
+		// For now using first point light, but gonna need to put em all in
 		LightData l0 = null;
 		if (ctx.pointLight[0] != null)
 			l0 = ctx.pointLight[0];
@@ -4485,7 +4479,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		// note the current state of MV MUST be used by the lights when setting position!
 		//https://www.opengl.org/discussion_boards/showthread.php/168706-Light-Position-in-eye-s-cordinate
 
-		// note can't use the modelview as it's  calced late		
+		// note can't use the modelview as it's calced late		
 		Vector4f lightPos = joglesctx.matrixUtil.transform(joglesctx.currentModelMat, joglesctx.currentViewMat, posx, posy, posz, 1.0f);
 
 		if (joglesctx.pointLight[lightSlot] == null)
@@ -5192,8 +5186,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					|| joglesctx.gl_state.srcBlendFunction != srcBlendFunction || joglesctx.gl_state.dstBlendFunction != dstBlendFunction))
 			{
 				gl.glEnable(GL2ES2.GL_BLEND);
-				// valid range of blendFunction 0..3 is already verified in
-				// shared code.
+				// valid range of blendFunction 0..3 is already verified in shared code.
 				gl.glBlendFunc(blendFunctionTable[srcBlendFunction], blendFunctionTable[dstBlendFunction]);
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
@@ -5817,11 +5810,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				format = GL2ES2.GL_BGRA;
 				type = GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
 				break;
-			/*
-			 * This method only supports 3 and 4 components formats and INT
-			 * types.
-			 */
-			case ImageComponentRetained.TYPE_BYTE_LA:
+			// This method only supports 3 and 4 components formats and INT types.			case ImageComponentRetained.TYPE_BYTE_LA:
 			case ImageComponentRetained.TYPE_BYTE_GRAY:
 			case ImageComponentRetained.TYPE_USHORT_GRAY:
 			case ImageComponentRetained.TYPE_BYTE_BGR:
@@ -5993,9 +5982,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				format = GL2ES2.GL_BGRA;
 				type = GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
 				break;
-			/*
-			 * This method only supports 3 and 4 components formats and INT types.
-			 */
+			// This method only supports 3 and 4 components formats and INT types.
 			case ImageComponentRetained.TYPE_BYTE_LA:
 			case ImageComponentRetained.TYPE_BYTE_GRAY:
 			case ImageComponentRetained.TYPE_USHORT_GRAY:
@@ -6086,40 +6073,40 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER, GL2ES2.GL_LINEAR);
 			break;
 		/*		case Texture.LINEAR_SHARPEN:
-		// We should never get here as we've disabled the TEXTURE_SHARPEN feature
-		//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-		//                        GL2ES2.GL_LINEAR_SHARPEN_SGIS);
-		break;
-		case Texture.LINEAR_SHARPEN_RGB:
-		// We should never get here as we've disabled the TEXTURE_SHARPEN feature
-		//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-		//                        GL2ES2.GL_LINEAR_SHARPEN_COLOR_SGIS);
-		break;
-		case Texture.LINEAR_SHARPEN_ALPHA:
-		// We should never get here as we've disabled the TEXTURE_SHARPEN feature
-		//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-		//                        GL2ES2.GL_LINEAR_SHARPEN_ALPHA_SGIS);
-		break;
-		case Texture2D.LINEAR_DETAIL:
-		// We should never get here as we've disabled the TEXTURE_DETAIL feature
-		//            	gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-		//                        GL2ES2.GL_LINEAR_DETAIL_SGIS);
-		break;
-		case Texture2D.LINEAR_DETAIL_RGB:
-		// We should never get here as we've disabled the TEXTURE_DETAIL feature
-		//            	gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-		//                        GL2ES2.GL_LINEAR_DETAIL_COLOR_SGIS);
-		break;
-		case Texture2D.LINEAR_DETAIL_ALPHA:
-		// We should never get here as we've disabled the TEXTURE_DETAIL feature
-		//            	gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-		//                        GL2ES2.GL_LINEAR_DETAIL_ALPHA_SGIS);
-		break;
-		case Texture.FILTER4:
-		// We should never get here as we've disabled the FILTER4 feature
-		//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-		//                        GL2ES2.GL_FILTER4_SGIS);
-		break;*/
+					// We should never get here as we've disabled the TEXTURE_SHARPEN feature
+					//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
+					//                        GL2ES2.GL_LINEAR_SHARPEN_SGIS);
+					break;
+				case Texture.LINEAR_SHARPEN_RGB:
+					// We should never get here as we've disabled the TEXTURE_SHARPEN feature
+					//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
+					//                        GL2ES2.GL_LINEAR_SHARPEN_COLOR_SGIS);
+					break;
+				case Texture.LINEAR_SHARPEN_ALPHA:
+					// We should never get here as we've disabled the TEXTURE_SHARPEN feature
+					//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
+					//                        GL2ES2.GL_LINEAR_SHARPEN_ALPHA_SGIS);
+					break;
+				case Texture2D.LINEAR_DETAIL:
+					// We should never get here as we've disabled the TEXTURE_DETAIL feature
+					//            	gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
+					//                        GL2ES2.GL_LINEAR_DETAIL_SGIS);
+					break;
+				case Texture2D.LINEAR_DETAIL_RGB:
+					// We should never get here as we've disabled the TEXTURE_DETAIL feature
+					//            	gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
+					//                        GL2ES2.GL_LINEAR_DETAIL_COLOR_SGIS);
+					break;
+				case Texture2D.LINEAR_DETAIL_ALPHA:
+					// We should never get here as we've disabled the TEXTURE_DETAIL feature
+					//            	gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
+					//                        GL2ES2.GL_LINEAR_DETAIL_ALPHA_SGIS);
+					break;
+				case Texture.FILTER4:
+					// We should never get here as we've disabled the FILTER4 feature
+					//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
+					//                        GL2ES2.GL_FILTER4_SGIS);
+					break;*/
 		}
 
 		if (DO_OUTPUT_ERRORS)
@@ -6209,39 +6196,39 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	}
 
 	/*	private static final String getFilterName(int filter)
-	{
-		switch (filter)
 		{
-		case Texture.FASTEST:
-			return "Texture.FASTEST";
-		case Texture.NICEST:
-			return "Texture.NICEST";
-		case Texture.BASE_LEVEL_POINT:
-			return "Texture.BASE_LEVEL_POINT";
-		case Texture.BASE_LEVEL_LINEAR:
-			return "Texture.BASE_LEVEL_LINEAR";
-		case Texture.MULTI_LEVEL_POINT:
-			return "Texture.MULTI_LEVEL_POINT";
-		case Texture.MULTI_LEVEL_LINEAR:
-			return "Texture.MULTI_LEVEL_LINEAR";
-		case Texture.FILTER4:
-			return "Texture.FILTER4";
-		case Texture.LINEAR_SHARPEN:
-			return "Texture.LINEAR_SHARPEN";
-		case Texture.LINEAR_SHARPEN_RGB:
-			return "Texture.LINEAR_SHARPEN_RGB";
-		case Texture.LINEAR_SHARPEN_ALPHA:
-			return "Texture.LINEAR_SHARPEN_ALPHA";
-		case Texture2D.LINEAR_DETAIL:
-			return "Texture.LINEAR_DETAIL";
-		case Texture2D.LINEAR_DETAIL_RGB:
-			return "Texture.LINEAR_DETAIL_RGB";
-		case Texture2D.LINEAR_DETAIL_ALPHA:
-			return "Texture.LINEAR_DETAIL_ALPHA";
-		default:
-			return "(unknown)";
-		}
-	}*/
+			switch (filter)
+			{
+			case Texture.FASTEST:
+				return "Texture.FASTEST";
+			case Texture.NICEST:
+				return "Texture.NICEST";
+			case Texture.BASE_LEVEL_POINT:
+				return "Texture.BASE_LEVEL_POINT";
+			case Texture.BASE_LEVEL_LINEAR:
+				return "Texture.BASE_LEVEL_LINEAR";
+			case Texture.MULTI_LEVEL_POINT:
+				return "Texture.MULTI_LEVEL_POINT";
+			case Texture.MULTI_LEVEL_LINEAR:
+				return "Texture.MULTI_LEVEL_LINEAR";
+			case Texture.FILTER4:
+				return "Texture.FILTER4";
+			case Texture.LINEAR_SHARPEN:
+				return "Texture.LINEAR_SHARPEN";
+			case Texture.LINEAR_SHARPEN_RGB:
+				return "Texture.LINEAR_SHARPEN_RGB";
+			case Texture.LINEAR_SHARPEN_ALPHA:
+				return "Texture.LINEAR_SHARPEN_ALPHA";
+			case Texture2D.LINEAR_DETAIL:
+				return "Texture.LINEAR_DETAIL";
+			case Texture2D.LINEAR_DETAIL_RGB:
+				return "Texture.LINEAR_DETAIL_RGB";
+			case Texture2D.LINEAR_DETAIL_ALPHA:
+				return "Texture.LINEAR_DETAIL_ALPHA";
+			default:
+				return "(unknown)";
+			}
+		}*/
 
 	// mapping from java enum to gl enum
 	private static final int[] _gl_textureCubeMapFace = { GL2ES2.GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL2ES2.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
@@ -6797,8 +6784,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (gl13)
 		{
 
-			// FIXME: setting this to cv.maxTexCoordSets = 8; and cutting the
-			// rest out doesn't work!
+			// FIXME: setting this to cv.maxTexCoordSets = 8; and cutting the rest out doesn't work!
 			cv.textureExtendedFeatures |= Canvas3D.TEXTURE_MULTI_TEXTURE;
 			cv.multiTexAccelerated = true;
 			int[] tmp = new int[1];
@@ -7173,8 +7159,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				// GL_STACK_UNDERFLOW 503?
 				// GL_STACK_OVERFLOW 504?
 
-				// check for no current shader program (likely a switch between
-				// scenes or something)
+				// check for no current shader program (likely a switch between scenes or something)
 				if (err == GL2ES2.GL_INVALID_OPERATION)
 				{
 					int[] res = new int[1];
@@ -7938,8 +7923,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 	}
 
-	// Setup the full scene antialising in D3D and ogl when GL_ARB_multisamle
-	// supported
+	// Setup the full scene antialising in D3D and ogl when GL_ARB_multisamle supported
 	@Override
 	// looks like one time call in renderer.doWork
 	void setFullSceneAntialiasing(Context ctx, boolean enable)
@@ -7951,7 +7935,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		JoglContext joglctx = (JoglContext) ctx;
 		GL2ES2 gl = ((Jogl2es2Context) ctx).gl2es2();
-		// PERF:GL2ES2 gl = context(ctx).getGL().getGL2ES2();
 		// not supported in ES2, possibly just part of context generally
 		// http://stackoverflow.com/questions/27035893/antialiasing-in-opengl-es-2-0
 		// FIXME: This is working under GL2ES2 but will need to change I think
@@ -7979,16 +7962,18 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (VERBOSE)
 			System.err.println("JoglPipeline.updateSeparateSpecularColorEnable()");
 
-		/*
-		 * GL2 gl = context(ctx).getGL().getGL2(); //GL2ES2 gl =
-		 * context(ctx).getGL().getGL2ES2(); // bound to be not supported as
-		 * definately shader work now
-		 * 
-		 * if (enable) { gl.glLightModeli(GL2ES2.GL_LIGHT_MODEL_COLOR_CONTROL,
-		 * GL2ES2.GL_SEPARATE_SPECULAR_COLOR); } else {
-		 * gl.glLightModeli(GL2ES2.GL_LIGHT_MODEL_COLOR_CONTROL,
-		 * GL2ES2.GL_SINGLE_COLOR); }
-		 */
+		/*	GL2 gl = context(ctx).getGL().getGL2();
+			//GL2ES2 gl = context(ctx).getGL().getGL2ES2();
+			// bound to be not supported as definately shader work now
+		
+			if (enable)
+			{
+				gl.glLightModeli(GL2ES2.GL_LIGHT_MODEL_COLOR_CONTROL, GL2ES2.GL_SEPARATE_SPECULAR_COLOR);
+			}
+			else
+			{
+				gl.glLightModeli(GL2ES2.GL_LIGHT_MODEL_COLOR_CONTROL, GL2ES2.GL_SINGLE_COLOR);
+			}*/
 	}
 
 	// ---------------------------------------------------------------------
@@ -8006,18 +7991,14 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		JoglDrawable joglDrawable = (JoglDrawable) drawable;
 		GLContext context = context(ctx);
 
-		// possibly bug in marshmallow
-		// google belwo and see its a bug on marshmallow
-		// 04-19 00:33:36.941 18278-18322/com.ingenieur.ese.eseandroid
-		// E/Surface: getSlotFromBufferLocked: unknown buffer: 0xb8dc6060
-		// 04-19 00:33:37.182 18278-18278/com.ingenieur.ese.eseandroid
-		// D/JogAmp.NEWT: onStop.0
+		// google below and see its a bug on marshmallow
+		// 04-19 00:33:36.941 18278-18322/com.ingenieur.ese.eseandroid E/Surface: getSlotFromBufferLocked: unknown buffer: 0xb8dc6060
+		// 04-19 00:33:37.182 18278-18278/com.ingenieur.ese.eseandroid D/JogAmp.NEWT: onStop.0
 
-		// after this a restart adn a swapBuffers call
+		// after this a restart and a swapBuffers call
 		// gl_window.getDelegatedDrawable().swapBuffers();
 		// gets a
-		// com.jogamp.opengl.GLException: Error swapping buffers, eglError
-		// 0x300d, jogamp.opengl.egl.EGLDrawable[realized true,
+		// com.jogamp.opengl.GLException: Error swapping buffers, eglError 0x300d, jogamp.opengl.egl.EGLDrawable[realized true,
 
 		if (joglDrawable != null)
 		{
@@ -8042,10 +8023,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (VERBOSE)
 			System.err.println("JoglPipeline.getNumCtxLights()");
 
-		/*
-		 * GL2ES2 gl = context(ctx).getGL().getGL2ES2(); int[] res = new int[1];
-		 * gl.glGetIntegerv(GL2ES2.GL_MAX_LIGHTS, res, 0); return res[0];
-		 */
+		/*	GL2ES2 gl = context(ctx).getGL().getGL2ES2();
+			int[] res = new int[1];
+			gl.glGetIntegerv(GL2ES2.GL_MAX_LIGHTS, res, 0);
+			return res[0];*/
 
 		// lights are now me! this is not called anyway
 		return 8;
@@ -8063,19 +8044,14 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		// FIXME: believe this should do exactly what the native code
 		// used to, but not 100% sure (also in theory should only run
 		// this code on the Windows platform? What about Mac OS X?)
-		/*
-		 * DisplayMode currentMode =
-		 * GraphicsEnvironment.getLocalGraphicsEnvironment().
-		 * getDefaultScreenDevice().getDisplayMode(); // Note: on X11 platforms,
-		 * a bit depth < 0 simply indicates that // multiple visuals are
-		 * supported on the current display mode
-		 * 
-		 * if (VERBOSE) System.err.println("  Returning " +
-		 * (currentMode.getBitDepth() < 0 || currentMode.getBitDepth() > 8));
-		 * 
-		 * return (currentMode.getBitDepth() < 0 || currentMode.getBitDepth() >
-		 * 8);
-		 */
+		/*		DisplayMode currentMode = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode();
+				// Note: on X11 platforms, a bit depth < 0 simply indicates that
+				// multiple visuals are supported on the current display mode
+		
+				if (VERBOSE)
+					System.err.println("  Returning " + (currentMode.getBitDepth() < 0 || currentMode.getBitDepth() > 8));
+		
+				return (currentMode.getBitDepth() < 0 || currentMode.getBitDepth() > 8);*/
 
 		return true;
 	}
@@ -8089,15 +8065,17 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		// lighting is entirely in shaders now so this should affect nothing?
 
-		/*
-		 * GL2 gl = context(ctx).getGL().getGL2(); //GL2ES2 gl =
-		 * context(ctx).getGL().getGL2ES2();
-		 * 
-		 * if (localEyeLightingEnable) {
-		 * gl.glLightModeli(GL2ES2.GL_LIGHT_MODEL_LOCAL_VIEWER, GL2ES2.GL_TRUE);
-		 * } else { gl.glLightModeli(GL2ES2.GL_LIGHT_MODEL_LOCAL_VIEWER,
-		 * GL2ES2.GL_FALSE); }
-		 */
+		/*	GL2 gl = context(ctx).getGL().getGL2();
+			//GL2ES2 gl = context(ctx).getGL().getGL2ES2();
+		
+			if (localEyeLightingEnable)
+			{
+				gl.glLightModeli(GL2ES2.GL_LIGHT_MODEL_LOCAL_VIEWER, GL2ES2.GL_TRUE);
+			}
+			else
+			{
+				gl.glLightModeli(GL2ES2.GL_LIGHT_MODEL_LOCAL_VIEWER, GL2ES2.GL_FALSE);
+			}*/
 	}
 	// ---------------------------------------------------------------------
 
@@ -8345,8 +8323,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			threadLocal.set(bufs);
 		}
 
-		// Now go down array of arrays, converting each into a direct
-		// FloatBuffer
+		// Now go down array of arrays, converting each into a direct FloatBuffer
 		for (int i = 0; i < array.length; i++)
 		{
 			float[] cur = (float[]) array[i];
@@ -8451,13 +8428,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			System.err.println("JoglPipeline.hasSceneAntialiasingAccum()");
 		// Accum style antialiasing is gone
 		return false;
-		/*
-		 * GLCapabilities caps = caps(cv); if (VERBOSE) System.err .println(
-		 * "  Returning " + (caps.getAccumRedBits() > 0 &&
-		 * caps.getAccumGreenBits() > 0 && caps.getAccumBlueBits() > 0)); return
-		 * (caps.getAccumRedBits() > 0 && caps.getAccumGreenBits() > 0 &&
-		 * caps.getAccumBlueBits() > 0);
-		 */
+		/*GLCapabilities caps = caps(cv);
+		if (VERBOSE)
+			System.err
+					.println("  Returning " + (caps.getAccumRedBits() > 0 && caps.getAccumGreenBits() > 0 && caps.getAccumBlueBits() > 0));
+		return (caps.getAccumRedBits() > 0 && caps.getAccumGreenBits() > 0 && caps.getAccumBlueBits() > 0);
+		*/
 
 	}
 
