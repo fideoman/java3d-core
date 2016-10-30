@@ -24,11 +24,13 @@ package org.jogamp.java3d;
 
 import java.awt.BorderLayout;
 import java.awt.Canvas;
+import java.awt.Dialog;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.GraphicsConfigTemplate;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.awt.Window;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -7504,7 +7506,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			// QueryCanvas
 			// JOGL requires a visible Frame for an onscreen context
 
-			Frame f = new Frame();
+			Dialog f = new Dialog(new Frame());
 			f.setUndecorated(true);
 			f.setLayout(new BorderLayout());
 
@@ -8584,7 +8586,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		AWTGraphicsConfiguration awtConfig = null;
 		while (tryAgain)
 		{
-			Frame f = new Frame();
+			Dialog f = new Dialog(new Frame());
 			f.setUndecorated(true);
 			f.setLayout(new BorderLayout());
 			capturer = new CapabilitiesCapturer();
@@ -8951,7 +8953,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	}
 
 	// used by getBestConfiguration above
-	private static void disposeOnEDT(final Frame f)
+	private static void disposeOnEDT(final Window f)
 	{
 		Runnable r = new Runnable() {
 			@Override
