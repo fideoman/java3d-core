@@ -8529,7 +8529,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (gct.getSceneAntialiasing() != GraphicsConfigTemplate.UNNECESSARY && gct.getDoubleBuffer() != GraphicsConfigTemplate.UNNECESSARY)
 		{
 			caps.setSampleBuffers(true);
-			caps.setNumSamples(2);
+			int numSamples = MasterControl.getIntegerProperty("j3d.numSamples", 2);
+			caps.setNumSamples(numSamples);
 		}
 		else
 		{
