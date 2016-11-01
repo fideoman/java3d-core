@@ -7541,10 +7541,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			// TODO can't find an implementation which avoids the use of
 			// QueryCanvas
 			// JOGL requires a visible Frame for an onscreen context
-
-			Dialog f = new Dialog(new Frame());
-			f.setUndecorated(true);
-			f.setLayout(new BorderLayout());
+			Frame f = new Frame();
+			Dialog d = new Dialog(f);
+			d.setUndecorated(true);
+			d.setLayout(new BorderLayout());
 
 			ContextQuerier querier = new ContextQuerier(cv);
 
@@ -7553,9 +7553,9 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			QueryCanvas canvas = new QueryCanvas(awtConfig, querier);
 
-			f.add(canvas, BorderLayout.CENTER);
-			f.setSize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
-			f.setVisible(true);
+			d.add(canvas, BorderLayout.CENTER);
+			d.setSize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
+			d.setVisible(true);
 			canvas.doQuery();
 			// Attempt to wait for the frame to become visible, but don't block
 			// the EDT
@@ -7576,6 +7576,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				}
 			}
 
+			disposeOnEDT(d);
 			disposeOnEDT(f);
 		}
 	}
@@ -8623,17 +8624,18 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		AWTGraphicsConfiguration awtConfig = null;
 		while (tryAgain)
 		{
-			Dialog f = new Dialog(new Frame());
-			f.setUndecorated(true);
-			f.setLayout(new BorderLayout());
+			Frame f = new Frame();
+			Dialog d = new Dialog(f);
+			d.setUndecorated(true);
+			d.setLayout(new BorderLayout());
 			capturer = new CapabilitiesCapturer();
 			try
 			{
 				awtConfig = createAwtGraphicsConfiguration(caps, capturer, screen);
 				QueryCanvas canvas = new QueryCanvas(awtConfig, capturer);
-				f.add(canvas, BorderLayout.CENTER);
-				f.setSize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
-				f.setVisible(true);
+				d.add(canvas, BorderLayout.CENTER);
+				d.setSize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
+				d.setVisible(true);
 				canvas.doQuery();
 				if (DEBUG_CONFIG)
 				{
@@ -8656,6 +8658,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						}
 					}
 				}
+				disposeOnEDT(d);
 				disposeOnEDT(f);
 				tryAgain = false;
 			}

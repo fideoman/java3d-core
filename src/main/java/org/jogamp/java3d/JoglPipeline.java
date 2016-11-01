@@ -6547,37 +6547,38 @@ class JoglPipeline extends Pipeline {
 
         	// TODO can't find an implementation which avoids the use of QueryCanvas
         	// JOGL requires a visible Frame for an onscreen context
+        	Frame f = new Frame();
+        	Dialog d = new Dialog(f);
+        	d.setUndecorated(true);
+        	d.setLayout(new BorderLayout());
 
-        	Dialog f = new Dialog(new Frame());
-        f.setUndecorated(true);
-        f.setLayout(new BorderLayout());
-
-        ContextQuerier querier = new ContextQuerier(cv);
+        	ContextQuerier querier = new ContextQuerier(cv);
 
 		    AWTGraphicsConfiguration awtConfig =
 		    		(AWTGraphicsConfiguration)Canvas3D.graphicsConfigTable.get(cv.graphicsConfiguration).getPrivateData();
 
 		    QueryCanvas canvas = new QueryCanvas(awtConfig, querier);
 
-        f.add(canvas, BorderLayout.CENTER);
-        f.setSize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
-        f.setVisible(true);
-        canvas.doQuery();
+		    d.add(canvas, BorderLayout.CENTER);
+		    d.setSize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
+		    d.setVisible(true);
+		    canvas.doQuery();
         // Attempt to wait for the frame to become visible, but don't block the EDT
-        if (!EventQueue.isDispatchThread()) {
-            synchronized(querier) {
-                if (!querier.done()) {
-                    try {
-                        querier.wait(WAIT_TIME);
+		    if (!EventQueue.isDispatchThread()) {
+	            synchronized(querier) {
+	                if (!querier.done()) {
+	                    try {
+	                        querier.wait(WAIT_TIME);
+		                    }
+		                    catch (InterruptedException e) {
 	                    }
-	                    catch (InterruptedException e) {
-                    }
-                }
-            }
-        }
+	                }
+	            }
+		    }
 
-        disposeOnEDT(f);
-    }
+		    disposeOnEDT(d);
+		    disposeOnEDT(f);
+        }
     }
 
     // This is the native for creating an offscreen buffer
@@ -8411,16 +8412,17 @@ static boolean hasFBObjectSizeChanged(JoglDrawable jdraw, int width, int height)
         CapabilitiesCapturer capturer = null;
         AWTGraphicsConfiguration awtConfig = null;
         while (tryAgain) {
-        	Dialog f = new Dialog(new Frame(), null, false, device.getDefaultConfiguration());
-            f.setUndecorated(true);
-            f.setLayout(new BorderLayout());
+        	Frame f = new Frame();
+        	Dialog d = new Dialog(f, null, false, device.getDefaultConfiguration());
+            d.setUndecorated(true);
+            d.setLayout(new BorderLayout());
             capturer = new CapabilitiesCapturer();
             try {
                 awtConfig = createAwtGraphicsConfiguration(caps, capturer, screen);
                 QueryCanvas canvas = new QueryCanvas(awtConfig, capturer);
-                f.add(canvas, BorderLayout.CENTER);
-                f.setSize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
-                f.setVisible(true);
+                d.add(canvas, BorderLayout.CENTER);
+                d.setSize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
+                d.setVisible(true);
                 canvas.doQuery();
                 if (DEBUG_CONFIG) {
                     System.err.println("Waiting for CapabilitiesCapturer");
@@ -8436,6 +8438,7 @@ static boolean hasFBObjectSizeChanged(JoglDrawable jdraw, int width, int height)
                         }
                     }
                 }
+                disposeOnEDT(d);
                 disposeOnEDT(f);
                 tryAgain = false;
             } catch (GLException e) {
