@@ -1686,6 +1686,7 @@ private static String getProperty(final String prop) {
 		       synchronized (rootThreadGroup) {
                            s.updateThread = new StructureUpdateThread(
                    	        rootThreadGroup, s, s.threadType);
+               s.updateThread.setDaemon(true);
 			   s.updateThread.setPriority(threadPriority);
 		       }
 		       return null;
@@ -2010,6 +2011,7 @@ private static String getProperty(final String prop) {
               public Object run() {
 		  synchronized (rootThreadGroup) {
 		      timerThread = new TimerThread(rootThreadGroup);
+		      timerThread.setDaemon(true);
 		      timerThread.setPriority(threadPriority);
 		  }
 		  return null;
@@ -2024,6 +2026,7 @@ private static String getProperty(final String prop) {
               public Object run() {
 		  synchronized (rootThreadGroup) {
 		      notificationThread = new NotificationThread(rootThreadGroup);
+		      notificationThread.setDaemon(true);
 		      notificationThread.setPriority(threadPriority);
 		  }
 		  return null;
