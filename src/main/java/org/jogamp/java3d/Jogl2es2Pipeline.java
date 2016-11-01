@@ -6951,7 +6951,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				{
 					System.err.println("Issue: Use of System.setProperty(\"sun.java2d.noddraw\", \"true\");");
 					System.err.println("or System.setProperty(\"sun.java2d.d3d\", \"false\");");
-					System.err.println("If either of these are being used please try reversing or removing them.");
+					System.err.println("If either of these are being used please try either reversing or removing them,");
+					System.err.println("or if they are required else where try adding System.setProperty(\"sun.awt.nopixfmt\", \"true\");");
 				}
 				
 				if (Platform.getOSName().equalsIgnoreCase("Windows 10") && //win10
