@@ -399,9 +399,17 @@ class MasterControl {
     // the setting in the driver.
     boolean implicitAntialiasing = false;
     
-    // If set to false default capabilities will not eb set, potentially allowing
+    // If set to false default capabilities will not be set, potentially allowing
     // much more compilation of scene graphs
     boolean defaultReadCapability = true;
+    
+    // If set to false nodes will not be pickable by default, potentially allowing
+    // much more compilation of scene graphs
+    boolean defaultNodePickable = true;
+    
+    // If set to false nodes will not be collidable by default, potentially allowing
+    // much more compilation of scene graphs
+    boolean defaultNodeCollidable = true;
 
     // False to disable compiled vertex array extensions if support
     boolean isCompiledVertexArray = true;
@@ -538,6 +546,16 @@ class MasterControl {
 		    getBooleanProperty("j3d.defaultReadCapability",
 		    		defaultReadCapability,
 				       "default read capability");
+	
+	defaultNodePickable =
+		    getBooleanProperty("j3d.defaultNodePickable",
+		    		defaultNodePickable,
+				       "default node pickable");
+	
+	defaultNodeCollidable =
+		    getBooleanProperty("j3d.defaultNodeCollidable",
+		    		defaultNodeCollidable,
+				       "default node collidable");
 
 	isCompiledVertexArray =
 	    getBooleanProperty("j3d.compiledVertexArray",
