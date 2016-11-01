@@ -26,7 +26,7 @@
 
 package org.jogamp.java3d;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 
 /**
  * Retained version of NodeComponent
@@ -48,7 +48,7 @@ class NodeComponentRetained extends SceneGraphObjectRetained {
 
     // A list of NodeRetained Objects that refer, directly or indirectly, to this
     // NodeComponentRetained
-    ArrayList users = new ArrayList(1);
+    LinkedHashSet<NodeRetained> users = new LinkedHashSet<NodeRetained>();
 
     // Mirror object of this node compoenent object
     NodeComponentRetained mirror = null;
@@ -115,27 +115,22 @@ class NodeComponentRetained extends SceneGraphObjectRetained {
 	}
     }
 
-    // Copy the list of useres passed in into this
+    // Copy the list of users passed in into this
     void copyMirrorUsers(NodeComponentRetained node) {
 	synchronized(mirror.users) {
 	  synchronized(node.mirror.users) {
-	      int size = node.mirror.users.size();
-	      for (int i=0; i<size ; i++) {
-		  mirror.users.add(node.mirror.users.get(i));
-	      }
+		  mirror.users.addAll(node.mirror.users);
 	    }
 	}
     }
 
 
-    // Remove the users of "node" from "this" node compoenent
+    // Remove the users of "node" from "this" node component
     void removeMirrorUsers(NodeComponentRetained node) {
 
 	synchronized(mirror.users) {
 	  synchronized(node.mirror.users) {
-	      for (int i=node.mirror.users.size()-1; i>=0; i--) {
-		  mirror.users.remove(mirror.users.indexOf(node.mirror.users.get(i)));
-	      }
+		  mirror.users.removeAll(node.mirror.users);
 	    }
 	}
     }
@@ -143,13 +138,13 @@ class NodeComponentRetained extends SceneGraphObjectRetained {
     // Add a user to the list of users
     synchronized void removeUser(NodeRetained node) {
 	if (node.source.isLive())
-	    users.remove(users.indexOf(node));
+		users.remove(node);
     }
 
     // Add a user to the list of users
     synchronized void addUser(NodeRetained node) {
 	if (node.source.isLive())
-	    users.add(node);
+		users.add(node);
     }
 
 
@@ -160,9 +155,13 @@ class NodeComponentRetained extends SceneGraphObjectRetained {
 	    return;
 	}
 
-	for (int i=users.size()-1; i >=0; i--) {
-	    ((NodeRetained)users.get(i)).notifySceneGraphChanged(false);
-	}
+	// the reverse order does not appear to be compulsory
+	// cahnge from ArayList to LinkedHashMap prevents ordered traversal
+	for (NodeRetained nr : users)
+		nr.notifySceneGraphChanged(false);
+	//for (int i=users.size()-1; i >=0; i--) {
+	//    ((NodeRetained)users.get(i)).notifySceneGraphChanged(false);
+	//}
     }
 
     /**

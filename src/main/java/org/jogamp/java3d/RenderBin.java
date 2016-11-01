@@ -33,6 +33,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
 import org.jogamp.vecmath.Color3f;
@@ -263,7 +264,7 @@ ArrayList<ArrayList<OrderedBin>> toBeAddedBinList = new ArrayList<ArrayList<Orde
  * that the same snapshot of the geometry is rendered
  * across all canvases
  */
-ArrayList<GeometryRetained> lockGeometryList = new ArrayList<GeometryRetained>(5);
+LinkedHashSet<GeometryRetained> lockGeometryList = new LinkedHashSet<GeometryRetained>(5);
 
 
     /**
@@ -296,7 +297,7 @@ ArrayList<OrderedBin> bgOrderedBins = new ArrayList<OrderedBin>(5);
 
     // List of node components that need special processing, due to
     // extensions
-    ArrayList nodeComponentList = new ArrayList(5);
+    LinkedHashSet<ImageComponentRetained> nodeComponentList = new LinkedHashSet<ImageComponentRetained>();
 
 
     // List of node components ***for this frame*** that need special
@@ -5665,8 +5666,8 @@ void reEvaluateEnv(ArrayList<LightRetained> mLts, ArrayList<FogRetained> fogs,
 
 	// Vertex array is locked for every time renderer is run
 	size =  lockGeometryList.size();
-	for (int i = 0; i < size; i++) {
-		GeometryRetained geo = lockGeometryList.get(i);
+	for (GeometryRetained geo : lockGeometryList)
+	{
 		geo.geomLock.getLock();
 	}
 
@@ -5680,9 +5681,9 @@ void reEvaluateEnv(ArrayList<LightRetained> mLts, ArrayList<FogRetained> fogs,
 
 	// Lock all the by reference image components
 	size = nodeComponentList.size();
-	for (int i = 0; i < size; i++) {
-	    ImageComponentRetained nc = (ImageComponentRetained)nodeComponentList.get(i);
-	    nc.geomLock.getLock();
+	for (ImageComponentRetained nc : nodeComponentList)
+	{
+		nc.geomLock.getLock();
 	}
     }
 
@@ -5691,8 +5692,8 @@ void reEvaluateEnv(ArrayList<LightRetained> mLts, ArrayList<FogRetained> fogs,
 	int size;
 
 	size = lockGeometryList.size();
-	for (int i = 0; i < size; i++) {
-		GeometryRetained geo = lockGeometryList.get(i);
+	for (GeometryRetained geo : lockGeometryList)
+	{
 		geo.geomLock.unLock();
 	}
 
@@ -5704,9 +5705,7 @@ void reEvaluateEnv(ArrayList<LightRetained> mLts, ArrayList<FogRetained> fogs,
 	// Clear the display list clear list
 	dlistLockList.clear();
 	// Lock all the by reference image components
-	size =  nodeComponentList.size();
-	for (int i = 0; i < size; i++) {
-	    ImageComponentRetained nc = (ImageComponentRetained)nodeComponentList.get(i);
+	for(ImageComponentRetained nc : nodeComponentList){
 	    nc.geomLock.unLock();
 	}
     }

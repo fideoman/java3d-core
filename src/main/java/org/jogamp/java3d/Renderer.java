@@ -912,14 +912,10 @@ ArrayList<TextureRetained> textureIDResourceTable = new ArrayList<TextureRetaine
 			    listOfCtxs.add(canvas.ctx);
 			    listOfCanvases.add(canvas);
 
-			    if (renderBin.nodeComponentList.size() > 0) {
-				for (i = 0; i < renderBin.nodeComponentList.size(); i++) {
-				    NodeComponentRetained nc = (NodeComponentRetained)renderBin.nodeComponentList.get(i);
-                                    if(nc instanceof ImageComponentRetained) {
-                                        ((ImageComponentRetained)nc).evaluateExtensions(canvas);
-                                    }
+			    for (ImageComponentRetained nc : renderBin.nodeComponentList)
+				{			    	
+                   nc.evaluateExtensions(canvas);  
 				}
-                            }
 
                             // enable separate specular color
 			    canvas.enableSeparateSpecularColor();

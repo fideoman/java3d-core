@@ -28,6 +28,7 @@ package org.jogamp.java3d;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.Vector;
 
 import org.jogamp.vecmath.Point3d;
@@ -2365,7 +2366,7 @@ Enumeration getAllGeometries(int id) {
      * This is used to send a message of the snapshot of the
      * geometry atoms that are affected by this change.
      */
-final static ArrayList<ArrayList<GeometryAtom>> getGeomAtomsList(ArrayList userList, ArrayList<VirtualUniverse> univList) {
+final static ArrayList<ArrayList<GeometryAtom>> getGeomAtomsList(LinkedHashSet<NodeRetained> userList, ArrayList<VirtualUniverse> univList) {
 	ArrayList<ArrayList<GeometryAtom>> listPerUniverse = new ArrayList<ArrayList<GeometryAtom>>();
 	int index;
 	ArrayList<GeometryAtom> gaList = null;
@@ -2374,9 +2375,10 @@ final static ArrayList<ArrayList<GeometryAtom>> getGeomAtomsList(ArrayList userL
 	VirtualUniverse firstFndUniv = null;
 
 	synchronized(userList) {
-	    for (int i = userList.size()-1; i >=0; i--) {
-		ms = (Shape3DRetained) userList.get(i);
-
+	    //for (int i = userList.size()-1; i >=0; i--) {
+		//ms = (Shape3DRetained) userList.get(i);
+		for(NodeRetained nr : userList){
+			ms = (Shape3DRetained)nr;
 		if(moreThanOneUniv == false) {
 		    if(firstFndUniv == null) {
 			firstFndUniv = ms.universe;
