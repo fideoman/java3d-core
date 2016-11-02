@@ -1407,7 +1407,7 @@ Enumeration getAllGeometries(int id) {
 	// currentLocalToVworld in the intersect test, it will then
 	// be more costly and really beat the purpose of eliminating
 	// the static transform group
-        if (isPickable || isCollidable ||
+        if (pickable || collidable ||
 	    	source.getCapability(Shape3D.ALLOW_PICKABLE_WRITE) ||
 	    	source.getCapability(Shape3D.ALLOW_COLLIDABLE_WRITE)) {
 	    return false;
@@ -2560,7 +2560,7 @@ final static ArrayList<ArrayList<GeometryAtom>> getGeomAtomsList(LinkedHashSet<N
 
 
     boolean isEquivalent(Shape3DRetained shape) {
-	if (this.appearance != shape.appearance ||
+    	if (!this.appearance.equals(shape.appearance) ||
 	    // Scoping info should be same since they are under same group
 	    this.appearanceOverrideEnable != shape.appearanceOverrideEnable ||
 	    this.isPickable != shape.isPickable ||

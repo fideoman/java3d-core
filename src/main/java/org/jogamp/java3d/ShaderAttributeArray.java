@@ -160,4 +160,36 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 	this.retained = new ShaderAttributeArrayRetained();
 	this.retained.setSource(this);
     }
+    
+    
+    @Override
+	public boolean equals(Object anObject)
+	{
+		if (this == anObject)
+		{
+			return true;
+		}
+		if (anObject instanceof ShaderAttributeArray)
+		{
+			ShaderAttributeArray anotherShaderAttributeArray = (ShaderAttributeArray) anObject;
+			if (this.getAttributeName().equals(anotherShaderAttributeArray.getAttributeName()))
+			{
+				Object[] values = (Object[]) getValue();
+				Object[] otherValues = (Object[]) anotherShaderAttributeArray.getValue();
+				int n = values.length;
+				if (n == otherValues.length)
+				{
+					int i = 0;
+					while (n-- != 0)
+					{
+						if (!values[i].equals(otherValues[i]))
+							return false;
+						i++;
+					}
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }
