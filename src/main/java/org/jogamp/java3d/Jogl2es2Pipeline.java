@@ -2768,9 +2768,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		//boolean vattrDefined = ((vdefined & GeometryArrayRetained.VATTR_FLOAT) != 0);
 		//boolean textureDefined = ((vdefined & GeometryArrayRetained.TEXCOORD_FLOAT) != 0);
 
-		// vertex colors MUST be ignored if no glColors set
-		boolean ignoreVertexColors = (!floatColorsDefined && !byteColorsDefined) || ctx.renderingData.ignoreVertexColors;
-
 		if (OUTPUT_PER_FRAME_STATS)
 			ctx.perFrameStats.setFFPAttributes++;
 
@@ -2938,15 +2935,19 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		if (locs.ignoreVertexColors != -1)
 		{
-			if (!MINIMISE_NATIVE_CALLS_FFP
-					|| (shaderProgramId != ctx.prevShaderProgram || ctx.gl_state.ignoreVertexColors != ignoreVertexColors))
+			// vertex colors MUST be ignored if no glColors set
+			boolean ignoreVertexColors = (!floatColorsDefined && !byteColorsDefined) || ctx.renderingData.ignoreVertexColors == 1;
+
+			//note ctx.gl_state.ignoreVertexColors can be -1 for not set
+			if (!MINIMISE_NATIVE_CALLS_FFP || (shaderProgramId != ctx.prevShaderProgram
+					|| ctx.gl_state.ignoreVertexColors != ctx.renderingData.ignoreVertexColors))
 			{
 				gl.glUniform1i(locs.ignoreVertexColors, ignoreVertexColors ? 1 : 0);// note local variable used
 
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 				if (MINIMISE_NATIVE_CALLS_FFP)
-					ctx.gl_state.ignoreVertexColors = ignoreVertexColors;
+					ctx.gl_state.ignoreVertexColors = ctx.renderingData.ignoreVertexColors;
 			}
 		}
 
@@ -5060,7 +5061,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			joglesctx.renderingData.alphaTestValue = alphaTestValue;
 		}
 
-		joglesctx.renderingData.ignoreVertexColors = ignoreVertexColors;
+		joglesctx.renderingData.ignoreVertexColors = ignoreVertexColors ? 1 : 0;
 
 		if (rasterOpEnable)
 		{
@@ -5151,7 +5152,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		joglesctx.renderingData.alphaTestEnabled = false;
 		joglesctx.renderingData.alphaTestFunction = RenderingAttributes.ALWAYS;
 		joglesctx.renderingData.alphaTestValue = 0;
-		joglesctx.renderingData.ignoreVertexColors = false;
+		joglesctx.renderingData.ignoreVertexColors = 0;
 
 		if (joglesctx.gl_state.glEnableGL_STENCIL_TEST == true)
 		{
@@ -6930,11 +6931,11 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (major < 1 || (major == 1 && minor < 2))
 		{
 			// In some double createNewContext uses or getPerferredConfiguration called before a Frame is constructed
-        	// the disabling of D3D can cause this issue
-        	// see Bug 1201 - Crash with option "sun.java2d.d3d=false"
-        	// https://jogamp.org/bugzilla/show_bug.cgi?id=1201
-        	
-        	// In the case of Java > 1.8u51 Win10  and an Intel HD2000/3000 driver, the driver will not load because 
+			// the disabling of D3D can cause this issue
+			// see Bug 1201 - Crash with option "sun.java2d.d3d=false"
+			// https://jogamp.org/bugzilla/show_bug.cgi?id=1201
+
+			// In the case of Java > 1.8u51 Win10  and an Intel HD2000/3000 driver, the driver will not load because 
 			// the java.exe manifest has a "supportedOS Id" that the drivers don't like (the drivers are too old)
 			// see  Bug 1278 - Windows 10 returns software Profile
 			// https://jogamp.org/bugzilla/show_bug.cgi?id=1278
@@ -6946,20 +6947,21 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			{
 				System.err.println("Java3D - GDI Generic Driver use detected.");
 				System.err.println("This may be caused by any of the following issues.");
-				
-				if (System.getProperty("sun.java2d.noddraw", "false").equals("true") || System.getProperty("sun.java2d.d3d", "true").equals("false"))
+
+				if (System.getProperty("sun.java2d.noddraw", "false").equals("true")
+						|| System.getProperty("sun.java2d.d3d", "true").equals("false"))
 				{
 					System.err.println("Issue: Use of System.setProperty(\"sun.java2d.noddraw\", \"true\");");
 					System.err.println("or System.setProperty(\"sun.java2d.d3d\", \"false\");");
 					System.err.println("If either of these are being used please try either reversing or removing them,");
 					System.err.println("or if they are required else where try adding System.setProperty(\"sun.awt.nopixfmt\", \"true\");");
 				}
-				
+
 				if (Platform.getOSName().equalsIgnoreCase("Windows 10") && //win10
 						(Platform.JAVA_VERSION_NUMBER.compareTo(Platform.Version19) >= 0) || // 1.9 or 1.8 > 51
 						(Platform.JAVA_VERSION_NUMBER.compareTo(Platform.Version18) >= 0 && Platform.JAVA_VERSION_UPDATE > 51) && //
 								Platform.getJavaVMName().toLowerCase().startsWith("java hotspot(tm)"))// e.g. Java HotSpot(TM) 64-Bit Server VM ; OpenJDK would give OpenJDK 64-Bit Server VM
-				{					
+				{
 					System.err.println("Issue: The use of an Intel HD2000/3000 driver in combination with Windows 10 and");
 					System.err.println("a JRE greater than 1.8 update 51. Please downgrade the JRE in use to JRE 1.8u51 or lower.");
 					System.err.println("For more information please see https://jogamp.org/bugzilla/show_bug.cgi?id=1278.");
@@ -6967,7 +6969,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				System.err.println("If this software has been supplied to you and you are unable to modify it's configuration");
 				System.err.println("please contact the suppler of this software with this entire message.");
 			}
-			
+
 			throw new IllegalRenderingStateException(
 					"Java 3D ERROR : OpenGL 1.2 or better is required (GL_VERSION=" + major + "." + minor + ")");
 		}
