@@ -4,7 +4,7 @@
 
 	<groupId>org.jogamp.java3d</groupId>
 	<artifactId>j3dcore</artifactId>
-	<version>1.6.0-SNAPSHOT</version>
+	<version>1.7.0</version>
 
 	<name>Java 3D Core</name>
 	<description>3D Graphics API for the Java Platform</description>
@@ -79,7 +79,7 @@
 		<jogamp.version>2.3.2</jogamp.version>
 
 		<!-- NB: Token values for filtering VersionInfo.java. -->
-		<version_base>1.6.0</version_base>
+		<version_base>1.7.0</version_base>
 		<build.spec.title>${project.name}</build.spec.title>
 		<build.spec.vendor></build.spec.vendor>
 		<build.impl.title>${project.name}</build.impl.title>
@@ -92,7 +92,7 @@
 		<is_dev_phase>true</is_dev_phase>
 		<is_production>false</is_production>
 		<use_verbose_buildtime>true</use_verbose_buildtime>
-		<version_buildnum>11</version_buildnum>
+		<version_buildnum>1</version_buildnum>
 		<version_build>pre${version_buildnum}</version_build>
 		<version_suffix>${version_build}</version_suffix>
 
