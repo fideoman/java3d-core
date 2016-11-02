@@ -1059,7 +1059,7 @@ private HashSet<ShaderAttribute> shaderAttrErrorSet = null;
 
     }
 
-
+    private static HashSet<String> warningsGiven = new HashSet<String>();
     void setShaderAttributes(Canvas3D cv, ShaderAttributeSetRetained attributeSet) {
         final boolean useSharedCtx = cv.useSharedCtx && cv.screen.renderer.sharedCtx != null;
         final int cvRdrIndex = useSharedCtx ? cv.screen.renderer.rendererId : cv.canvasId;
@@ -1088,32 +1088,72 @@ private HashSet<ShaderAttribute> shaderAttrErrorSet = null;
             } else {
                 ShaderAttrLoc loc = attrNameInfo.getLocation();
                 if (loc != null) {
-                    if (saRetained instanceof ShaderAttributeValueRetained) {
-                        ShaderAttributeValueRetained savRetained = (ShaderAttributeValueRetained)saRetained;
-                        if (attrNameInfo.isArray() ||
-                                (savRetained.getClassType() != attrNameInfo.getType())) {
-                            String errMsg = "Attribute type mismatch: " + savRetained.getAttributeName(); // TODO: I18N
-                            err = new ShaderError(ShaderError.SHADER_ATTRIBUTE_TYPE_ERROR, errMsg);
-                        }
-                        else {
-                            err = setUniformAttrValue(cv.ctx, shaderProgramId, loc, savRetained);
-                        }
-                    } else if (saRetained instanceof ShaderAttributeArrayRetained) {
-                        ShaderAttributeArrayRetained saaRetained = (ShaderAttributeArrayRetained)saRetained;
-                        if (!attrNameInfo.isArray() ||
-                                (saaRetained.getClassType() != attrNameInfo.getType())) {
-                            String errMsg = "Attribute type mismatch: " + saaRetained.getAttributeName(); // TODO: I18N
-                            err = new ShaderError(ShaderError.SHADER_ATTRIBUTE_TYPE_ERROR, errMsg);
-                        }
-                        else {
-                            err = setUniformAttrArray(cv.ctx, shaderProgramId, loc, saaRetained);
-                        }
-                    } else if (saRetained instanceof ShaderAttributeBindingRetained) {
-                        assert false;
-                        throw new RuntimeException("not implemented");
-                    } else {
-                        assert false;
-                    }
+                	if (saRetained instanceof ShaderAttributeValueRetained)
+					{
+						ShaderAttributeValueRetained savRetained = (ShaderAttributeValueRetained) saRetained;
+						//-1 indicates compiled away
+						if (attrNameInfo.getType() != -1)
+						{
+							if (attrNameInfo.isArray() || (savRetained.getClassType() != attrNameInfo.getType()))
+							{
+								//PJPJPJJPJ
+								String errMsg = "Attribute type mismatch: " + savRetained.getAttributeName() + " attrNameInfo.isArray() "
+										+ attrNameInfo.isArray() + " " + savRetained.getClassType() + " != " + attrNameInfo.getType();
+								// TODO: I18N
+								err = new ShaderError(ShaderError.SHADER_ATTRIBUTE_TYPE_ERROR, errMsg);
+							}
+							else
+							{
+								err = setUniformAttrValue(cv.ctx, shaderProgramId, loc, savRetained);
+							}
+						}
+						else
+						{
+							if (!warningsGiven.contains((ShaderProgram) this.source + " Attr: " + savRetained.getAttributeName()))
+							{
+								System.out.println(
+										"" + (ShaderProgram) this.source + " Attr: " + savRetained.getAttributeName() + " compiled away");
+								warningsGiven.add((ShaderProgram) this.source + " Attr: " + savRetained.getAttributeName());
+							}
+						}
+					}
+					else if (saRetained instanceof ShaderAttributeArrayRetained)
+					{
+						ShaderAttributeArrayRetained saaRetained = (ShaderAttributeArrayRetained) saRetained;
+						//-1 indicates compiled away
+						if (attrNameInfo.getType() != -1)
+						{
+							if (!attrNameInfo.isArray() || (saaRetained.getClassType() != attrNameInfo.getType()))
+							{
+								String errMsg = "Attribute type mismatch: " + saaRetained.getAttributeName() + " attrNameInfo.isArray() "
+										+ attrNameInfo.isArray() + " " + saaRetained.getClassType() + " != " + attrNameInfo.getType();
+								// TODO: I18N
+								err = new ShaderError(ShaderError.SHADER_ATTRIBUTE_TYPE_ERROR, errMsg);
+							}
+							else
+							{
+								err = setUniformAttrArray(cv.ctx, shaderProgramId, loc, saaRetained);
+							}
+						}
+						else
+						{
+							if (!warningsGiven.contains((ShaderProgram) this.source + " Attr: " + saaRetained.getAttributeName()))
+							{
+								System.out.println(
+										"" + (ShaderProgram) this.source + " Attr: " + saaRetained.getAttributeName() + " compiled away");
+								warningsGiven.add((ShaderProgram) this.source + " Attr: " + saaRetained.getAttributeName());
+							}
+						}
+					}
+					else if (saRetained instanceof ShaderAttributeBindingRetained)
+					{
+						assert false;
+						throw new RuntimeException("not implemented");
+					}
+					else
+					{
+						assert false;
+					}
                 }
             }
 
