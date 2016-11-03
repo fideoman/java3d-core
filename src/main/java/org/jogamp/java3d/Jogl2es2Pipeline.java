@@ -327,7 +327,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					coordoff += 4;
 				}
 				else
-				{ /* Handle the case of executeInterleaved 3f */
+				{
+					// Handle the case of executeInterleaved 3f 
 					stride += 3;
 					normoff += 3;
 					coordoff += 3;
@@ -432,6 +433,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			GeometryData gd = loadAllBuffers(ctx, gl, geo, ignoreVertexColors, vcount, vformat, vformat, verts, startVertex, clrs,
 					startClrs);
 
+			// can it change ever? (GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of this feature)
+			boolean morphable = geo.source.getCapability(GeometryArray.ALLOW_REF_DATA_WRITE)
+					|| geo.source.getCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
+
 			// not required second time around for VAO (except morphable coords)
 			boolean bindingRequired = true;
 			if (ctx.gl2es3() != null)
@@ -453,7 +458,120 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					outputErrors(ctx);
 			}
 
-			if (bindingRequired)
+			// refill the buffers in case of writeable data
+			if (locs.glVertex != -1)
+			{
+
+				if (gd.geoToCoordBuf == -1)
+				{
+					new Throwable("Buffer load issue!").printStackTrace();
+				}
+				else
+				{
+
+					// a good cDirty
+					// if ((cDirty & GeometryArrayRetained.COORDINATE_CHANGED) != 0)
+					if (morphable)
+					{
+
+						verts.position(startVertex);
+						// Sometime the FloatBuffer is swapped out for bigger or smaller! or is that ok?
+						if (gd.geoToCoordBufSize != verts.remaining())
+						{
+							System.err.println("Morphable buffer changed " + gd.geoToCoordBufSize + " != " + verts.remaining()
+									+ " un indexed ((GeometryArray) geo.source) " + ((GeometryArray) geo.source).getName() + " "
+									+ geo.source + ", this is not nessasarily a problem");
+
+							int prevBufId1 = gd.geoToCoordBuf1;// record to delete after re-bind
+							int prevBufId2 = gd.geoToCoordBuf2;
+
+							int[] tmp = new int[2];
+							gl.glGenBuffers(2, tmp, 0);
+							gd.geoToCoordBuf = tmp[0];
+							gd.geoToCoordBuf1 = tmp[0];
+							gd.geoToCoordBuf2 = tmp[1];
+
+							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
+							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_DYNAMIC_DRAW);
+							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
+							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_DYNAMIC_DRAW);
+
+							gd.geoToCoordBufSize = verts.remaining();
+
+							if (DO_OUTPUT_ERRORS)
+								outputErrors(ctx);
+
+							if (OUTPUT_PER_FRAME_STATS)
+								ctx.perFrameStats.glBufferData++;
+
+							//Notice no check for bindingRequired as we are altering the binding
+							//and previously used buffer is deleted AFTER re-bind
+
+							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf);
+							gl.glVertexAttribPointer(locs.glVertex, 3, GL2ES2.GL_FLOAT, false, 0, 0);
+							gl.glEnableVertexAttribArray(locs.glVertex);
+							if (DO_OUTPUT_ERRORS)
+								outputErrors(ctx);
+
+							if (OUTPUT_PER_FRAME_STATS)
+								ctx.perFrameStats.glVertexAttribPointerCoord++;
+
+							if (OUTPUT_PER_FRAME_STATS)
+								ctx.perFrameStats.coordCount += gd.geoToCoordBufSize;
+
+							gl.glDeleteBuffers(1, new int[] { prevBufId1, prevBufId2 }, 0);
+							if (DO_OUTPUT_ERRORS)
+								outputErrors(ctx);
+						}
+						else
+						{
+							// work out the buffer to update and buffer to swap to
+							if (gd.geoToCoordBuf == gd.geoToCoordBuf1)
+							{
+								// update 1 but set to draw 2
+								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
+								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.SIZE / 8), verts);
+								gd.geoToCoordBuf = gd.geoToCoordBuf2;
+							}
+							else
+							{
+								// update 2 but set to draw 1
+								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
+								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.SIZE / 8), verts);
+								gd.geoToCoordBuf = gd.geoToCoordBuf1;
+							}
+
+							if (DO_OUTPUT_ERRORS)
+								outputErrors(ctx);
+
+							if (OUTPUT_PER_FRAME_STATS)
+								ctx.perFrameStats.glBufferSubData++;
+						}
+					}
+
+				}
+
+			}
+			else
+			{
+				throw new UnsupportedOperationException("Shader has no glVertex.\n" + VALID_FORMAT_MESSAGE);
+			}
+
+			// update other attributes if required
+			if (((vformat & GeometryArray.COLOR) != 0) && locs.glColor != -1 && !ignoreVertexColors)
+			{
+				// if ((cDirty & GeometryArrayRetained.COLOR_CHANGED) != 0)
+				boolean changable = geo.source.getCapability(GeometryArray.ALLOW_COLOR_WRITE);
+				if (changable)
+				{
+					clrs.position(0);
+					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToColorBuf);
+					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, clrs.remaining() * Float.SIZE / 8, clrs);
+				}
+			}
+
+			// notice morphables must always rebind each frame as coord buffers are swapped
+			if (bindingRequired || morphable)
 			{
 				// always do coords 
 				gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf);
@@ -468,6 +586,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					ctx.perFrameStats.glVertexAttribPointerCoord++;
 				if (OUTPUT_PER_FRAME_STATS)
 					ctx.perFrameStats.coordCount += gd.geoToCoordBufSize;
+			}
+
+			if (bindingRequired)
+			{
 
 				if (((vformat & GeometryArray.COLOR) != 0) && locs.glColor != -1 && !ignoreVertexColors)
 				{
@@ -1621,6 +1743,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			GeometryData gd = loadAllBuffers(ctx, gl, geo, ignoreVertexColors, vcount, vformat, vformat, verts, 0, clrs, 0);
 
+			// can it change ever? (GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of this feature)
+			boolean morphable = geo.source.getCapability(GeometryArray.ALLOW_REF_DATA_WRITE)
+					|| geo.source.getCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
+
 			// not required second time around for VAO (except morphable coords)
 			boolean bindingRequired = true;
 			if (ctx.gl2es3() != null)
@@ -1641,8 +1767,120 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 			}
+			// refill the buffers in case of writeable data
+			if (locs.glVertex != -1)
+			{
 
-			if (bindingRequired)
+				if (gd.geoToCoordBuf == -1)
+				{
+					new Throwable("Buffer load issue!").printStackTrace();
+				}
+				else
+				{
+
+					// a good cDirty
+					// if ((cDirty & GeometryArrayRetained.COORDINATE_CHANGED) != 0)
+					if (morphable)
+					{
+
+						verts.position(0);
+						// Sometime the FloatBuffer is swapped out for bigger or smaller! or is that ok?
+						if (gd.geoToCoordBufSize != verts.remaining())
+						{
+							System.err.println("Morphable buffer changed " + gd.geoToCoordBufSize + " != " + verts.remaining()
+									+ " un indexed ((GeometryArray) geo.source) " + ((GeometryArray) geo.source).getName() + " "
+									+ geo.source + ", this is not nessasarily a problem");
+
+							int prevBufId1 = gd.geoToCoordBuf1;// record to delete after re-bind
+							int prevBufId2 = gd.geoToCoordBuf2;
+
+							int[] tmp = new int[2];
+							gl.glGenBuffers(2, tmp, 0);
+							gd.geoToCoordBuf = tmp[0];
+							gd.geoToCoordBuf1 = tmp[0];
+							gd.geoToCoordBuf2 = tmp[1];
+
+							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
+							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_DYNAMIC_DRAW);
+							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
+							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_DYNAMIC_DRAW);
+
+							gd.geoToCoordBufSize = verts.remaining();
+
+							if (DO_OUTPUT_ERRORS)
+								outputErrors(ctx);
+
+							if (OUTPUT_PER_FRAME_STATS)
+								ctx.perFrameStats.glBufferData++;
+
+							//Notice no check for bindingRequired as we are altering the binding
+							//and previously used buffer is deleted AFTER re-bind
+
+							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf);
+							gl.glVertexAttribPointer(locs.glVertex, 3, GL2ES2.GL_FLOAT, false, 0, 0);
+							gl.glEnableVertexAttribArray(locs.glVertex);
+							if (DO_OUTPUT_ERRORS)
+								outputErrors(ctx);
+
+							if (OUTPUT_PER_FRAME_STATS)
+								ctx.perFrameStats.glVertexAttribPointerCoord++;
+
+							if (OUTPUT_PER_FRAME_STATS)
+								ctx.perFrameStats.coordCount += gd.geoToCoordBufSize;
+
+							gl.glDeleteBuffers(1, new int[] { prevBufId1, prevBufId2 }, 0);
+							if (DO_OUTPUT_ERRORS)
+								outputErrors(ctx);
+						}
+						else
+						{
+							// work out the buffer to update and buffer to swap to
+							if (gd.geoToCoordBuf == gd.geoToCoordBuf1)
+							{
+								// update 1 but set to draw 2
+								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
+								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.SIZE / 8), verts);
+								gd.geoToCoordBuf = gd.geoToCoordBuf2;
+							}
+							else
+							{
+								// update 2 but set to draw 1
+								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
+								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.SIZE / 8), verts);
+								gd.geoToCoordBuf = gd.geoToCoordBuf1;
+							}
+
+							if (DO_OUTPUT_ERRORS)
+								outputErrors(ctx);
+
+							if (OUTPUT_PER_FRAME_STATS)
+								ctx.perFrameStats.glBufferSubData++;
+						}
+					}
+
+				}
+
+			}
+			else
+			{
+				throw new UnsupportedOperationException("Shader has no glVertex.\n" + VALID_FORMAT_MESSAGE);
+			}
+
+			// update other attributes if required
+			if (((vformat & GeometryArray.COLOR) != 0) && locs.glColor != -1 && !ignoreVertexColors)
+			{
+				// if ((cDirty & GeometryArrayRetained.COLOR_CHANGED) != 0)
+				boolean changable = geo.source.getCapability(GeometryArray.ALLOW_COLOR_WRITE);
+				if (changable)
+				{
+					clrs.position(0);
+					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToColorBuf);
+					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, clrs.remaining() * Float.SIZE / 8, clrs);
+				}
+			}
+
+			// notice morphables must always rebind each frame as coord buffers are swapped
+			if (bindingRequired || morphable)
 			{
 				// always do coords 
 				gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf);
@@ -1656,6 +1894,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					ctx.perFrameStats.glVertexAttribPointerCoord++;
 				if (OUTPUT_PER_FRAME_STATS)
 					ctx.perFrameStats.coordCount += gd.geoToCoordBufSize;
+			}
+
+			if (bindingRequired)
+			{
 
 				if (((vformat & GeometryArray.COLOR) != 0) && locs.glColor != -1 && !ignoreVertexColors)
 				{
