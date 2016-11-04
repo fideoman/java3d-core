@@ -89,7 +89,7 @@
 		<buildtime>daily</buildtime>
 		<buildtime_verbose>daily</buildtime_verbose>
 		<is_debug>false</is_debug>
-		<is_dev_phase>true</is_dev_phase>
+		<is_dev_phase>false</is_dev_phase>
 		<is_production>false</is_production>
 		<use_verbose_buildtime>true</use_verbose_buildtime>
 		<version_buildnum>1</version_buildnum>
