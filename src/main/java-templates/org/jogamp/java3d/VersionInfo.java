@@ -196,6 +196,12 @@ class VersionInfo extends Object {
      * initializer for this class.
      */
     private static final String VERSION;
+    
+    /**
+     * The composite version string.  This is composed in the static
+     * initializer for this class.
+     */
+    private static final String VERSION_FULL;
 
     /**
      * The composite vendor string.  This is composed in the static
@@ -236,48 +242,56 @@ class VersionInfo extends Object {
 	    tmpVendor += " & " + VENDOR_DEVELOPER;
 	}
 
+	String tmpVersionFull = VERSION_BASE;
 	String tmpVersion = VERSION_BASE;
 	if (isNonEmpty(VERSION_SUFFIX)) {
 	    if (isPatchBuild) {
+		tmpVersionFull += "_";
 		tmpVersion += "_";
 	    }
 	    else {
-		tmpVersion += "-";
+		tmpVersionFull += "-";
+		tmpVersion += "_";
 	    }
+	    tmpVersionFull += VERSION_SUFFIX;
 	    tmpVersion += VERSION_SUFFIX;
 	}
 
 	if (isDailyBuild && isNonEmpty(BUILDTIME)) {
-	    tmpVersion += "-" + BUILDTIME;
+	    tmpVersionFull += "-" + BUILDTIME;
 	}
 
 	if (isExperimental) {
-	    tmpVersion += "-experimental";
+	    tmpVersionFull += "-experimental";
 	}
 
 	// Append the optional fields that follow the first space
 
 	if (isProduction) {
 	    if (isFcsBuild) {
+		tmpVersionFull += " fcs";
 		tmpVersion += " fcs";
 	    }
 	    else if (isPatchBuild) {
+		tmpVersionFull += " fcs+patch";
 		tmpVersion += " fcs+patch";
 	    }
 
 	    if (isNonEmpty(VERSION_BUILD)) {
+		tmpVersionFull += " (" + VERSION_BUILD + ")";
 		tmpVersion += " (" + VERSION_BUILD + ")";
 	    }
 	}
 
 	if (useVerboseBuildTime && isNonEmpty(BUILDTIME_VERBOSE)) {
-	    tmpVersion += " " + BUILDTIME_VERBOSE;
+	    tmpVersionFull += " " + BUILDTIME_VERBOSE;
 	}
 
 	if (isNonEmpty(VERSION_DEV_STRING)) {
-	    tmpVersion += " " + VERSION_DEV_STRING;
+	    tmpVersionFull += " " + VERSION_DEV_STRING;
 	}
 
+	VERSION_FULL = tmpVersionFull;
 	VERSION = tmpVersion;
 	VENDOR = tmpVendor;
     }
@@ -304,6 +318,14 @@ class VersionInfo extends Object {
      * @return the implementation version string
      */
     static String getVersion() {
+	return VERSION;
+    }
+    
+    /**
+     * Returns the implementation version string.
+     * @return the implementation version string
+     */
+    static String getVersionFull() {
 	return VERSION;
     }
 
