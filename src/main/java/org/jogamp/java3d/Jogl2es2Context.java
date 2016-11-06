@@ -62,11 +62,11 @@ public class Jogl2es2Context extends JoglContext
 		super.setShaderProgram(object);
 		shaderProgram = object;
 		shaderProgramId = object == null ? -1 : object.getValue();
-		programData = allProgramData.get(shaderProgramId);
+		programData = allProgramData.get(new Integer(shaderProgramId));
 		if (programData == null)
 		{
 			programData = new ProgramData();
-			allProgramData.put(shaderProgramId, programData);
+			allProgramData.put(new Integer(shaderProgramId), programData);
 		}
 
 	}
@@ -134,6 +134,7 @@ public class Jogl2es2Context extends JoglContext
 	public glFrontMaterial materialData = new glFrontMaterial();
 	// should use getMaximumLights() in pipeline? though it's up to the shader
 	public static int MAX_LIGHTS = 32;
+	public int maxLights;
 	public int numberOfLights;
 	public glLightSource[] glLightSource = new glLightSource[MAX_LIGHTS];	 
 
@@ -428,7 +429,6 @@ public class Jogl2es2Context extends JoglContext
 	}
 	//	struct lightSource
 	//	{
-	//	  int enabled;
 	//	  vec4 position;
 	//	  vec4 diffuse;
 	//	  vec4 specular;
@@ -445,6 +445,7 @@ public class Jogl2es2Context extends JoglContext
 	public static class glLightSource
 	{
 		public int enabled = -1;
+		public int prevLightSlot = -1;
 		public Vector4f position = new Vector4f();
 		//public Vector4f ambient = new Vector4f();//removed as an oddity
 		public Vector4f diffuse = new Vector4f();
@@ -459,6 +460,7 @@ public class Jogl2es2Context extends JoglContext
 		public void clear()
 		{
 			enabled = -1;
+			prevLightSlot = -1;
 			position.set(-999f, -999f, -999f, -999f);
 			diffuse.set(-999f, -999f, -999f, -999f);
 			specular.set(-999f, -999f, -999f, -999f);
@@ -473,6 +475,7 @@ public class Jogl2es2Context extends JoglContext
 		public void set(glLightSource ogfm)
 		{
 			enabled = ogfm.enabled;
+			prevLightSlot = ogfm.prevLightSlot;
 			position.set(ogfm.position);
 			diffuse.set(ogfm.diffuse);
 			specular.set(ogfm.specular);
@@ -490,8 +493,8 @@ public class Jogl2es2Context extends JoglContext
 			if (o instanceof glLightSource)
 			{
 				glLightSource ogfm = (glLightSource) o;
-				return enabled == ogfm.enabled && ogfm.position.equals(position) && ogfm.diffuse.equals(diffuse)
-						&& ogfm.specular.equals(specular) && ogfm.constantAttenuation == constantAttenuation
+				return enabled == ogfm.enabled && prevLightSlot == ogfm.prevLightSlot && ogfm.position.equals(position)
+						&& ogfm.diffuse.equals(diffuse) && ogfm.specular.equals(specular) && ogfm.constantAttenuation == constantAttenuation
 						&& ogfm.linearAttenuation == linearAttenuation && ogfm.quadraticAttenuation == quadraticAttenuation
 						&& ogfm.spotCutoff == spotCutoff && ogfm.spotExponent == spotExponent && ogfm.spotDirection.equals(spotDirection);
 			}
