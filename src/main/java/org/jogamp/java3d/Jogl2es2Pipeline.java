@@ -5928,11 +5928,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 		else if ((dataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_ARRAY)
 				|| (dataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_BUFFER))
-
 		{
-
-			// FIXME: I suspect I will only support byte buffer images so perhaps the INT type can be deprecated?
-			System.out.println("IMAGE_DATA_TYPE_INT_ in use!");
 			int type = GL2.GL_UNSIGNED_INT_8_8_8_8;
 			boolean forceAlphaToOne = false;
 			switch (imageFormat)
@@ -5964,7 +5960,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			if (forceAlphaToOne)
 			{
-				new Throwable("forceAlphaToOne").printStackTrace();
+				// this is probably fine
+				//new Throwable("forceAlphaToOne").printStackTrace();
 			}
 
 			if (dataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_ARRAY)
@@ -5996,7 +5993,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		if (imgXOffset > 0 || (width < tilew))
 		{
-			new Throwable("forceAlphaToOne").printStackTrace();
+			// PJ not sure what should be happening here
+			//new Throwable("forceAlphaToOne").printStackTrace();
 		}
 
 		int internalFormat = 0;
@@ -6137,7 +6135,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			if (forceAlphaToOne)
 			{
-				new Throwable("forceAlphaToOne").printStackTrace();
+				//Probably fine
+				//new Throwable("forceAlphaToOne").printStackTrace();
 			}
 
 			IntBuffer buf = null;
