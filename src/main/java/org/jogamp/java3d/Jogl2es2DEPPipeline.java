@@ -308,7 +308,31 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 	//
 	// Canvas3D methods - native wrappers
 	//
+	@Override
+	@Deprecated
+	void freeDisplayList(Context ctx, int id)
+	{
+		throw new UnsupportedOperationException("DisplayLists in use!. When using the gl2es2pipeline you should can use \n"
+				+ "System.setProperty(\"j3d.displaylist\", \"false\"); to avoid this issue. \n"
+				+ "Please note the recommended solution is to use NIO buffers. \n" + VALID_FORMAT_MESSAGE);
+	}
 
+	@Override
+	@Deprecated
+	// nothing seems to call this in Canvas3D either
+	void texturemapping(Context ctx, int px, int py, int minX, int minY, int maxX, int maxY, int texWidth, int texHeight, int rasWidth,
+			int format, int objectId, byte[] imageYdown, int winWidth, int winHeight)
+	{
+		throw new UnsupportedOperationException("texturemapping not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
+	}
+
+	@Override
+	@Deprecated
+	// nothing seems to call this in Canvas3D either
+	boolean initTexturemapping(Context ctx, int texWidth, int texHeight, int objectId)
+	{
+		throw new UnsupportedOperationException("texturemapping not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
+	}
 	// This is the native method for doing accumulation.
 	@Override
 	@Deprecated
@@ -354,33 +378,6 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 
 	// The following three methods are used in multi-pass case
 
-	@Override
-	@Deprecated
-	void textureFillBackground(Context ctx, float texMinU, float texMaxU, float texMinV, float texMaxV, float mapMinX, float mapMaxX,
-			float mapMinY, float mapMaxY, boolean useBilinearFilter)
-	{
-		throw new UnsupportedOperationException("textureFillBackground not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
-
-	}
-
-	@Override
-	@Deprecated
-	void textureFillRaster(Context ctx, float texMinU, float texMaxU, float texMinV, float texMaxV, float mapMinX, float mapMaxX,
-			float mapMinY, float mapMaxY, float mapZ, float alpha, boolean useBilinearFilter)
-	{
-
-		throw new UnsupportedOperationException("textureFillRaster not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
-	}
-
-	@Override
-	@Deprecated
-	void executeRasterDepth(Context ctx, float posX, float posY, float posZ, int srcOffsetX, int srcOffsetY, int rasterWidth,
-			int rasterHeight, int depthWidth, int depthHeight, int depthFormat, Object depthData)
-	{
-		throw new UnsupportedOperationException("executeRasterDepth not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
-
-	}
-
 	// used for display Lists
 	@Override
 	@Deprecated
@@ -409,29 +406,5 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 				+ "Please note the recommended solution is to use NIO buffers. \n" + VALID_FORMAT_MESSAGE);
 	}
 
-	@Override
-	@Deprecated
-	void freeDisplayList(Context ctx, int id)
-	{
-		throw new UnsupportedOperationException("DisplayLists in use!. When using the gl2es2pipeline you should can use \n"
-				+ "System.setProperty(\"j3d.displaylist\", \"false\"); to avoid this issue. \n"
-				+ "Please note the recommended solution is to use NIO buffers. \n" + VALID_FORMAT_MESSAGE);
-	}
 
-	@Override
-	@Deprecated
-	// nothing seems to call this in Canvas3D either
-	void texturemapping(Context ctx, int px, int py, int minX, int minY, int maxX, int maxY, int texWidth, int texHeight, int rasWidth,
-			int format, int objectId, byte[] imageYdown, int winWidth, int winHeight)
-	{
-		throw new UnsupportedOperationException("texturemapping not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
-	}
-
-	@Override
-	@Deprecated
-	// nothing seems to call this in Canvas3D either
-	boolean initTexturemapping(Context ctx, int texWidth, int texHeight, int objectId)
-	{
-		throw new UnsupportedOperationException("texturemapping not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
-	}
 }

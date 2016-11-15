@@ -128,7 +128,6 @@ public class Jogl2es2Context extends JoglContext
 		public int programToUBOBuf = -1;
 	}
 
-	
 	public fogData fogData = new fogData();
 
 	public glFrontMaterial materialData = new glFrontMaterial();
@@ -136,9 +135,7 @@ public class Jogl2es2Context extends JoglContext
 	public static int MAX_LIGHTS = 32;
 	public int maxLights;
 	public int numberOfLights;
-	public glLightSource[] glLightSource = new glLightSource[MAX_LIGHTS];	 
-
-	
+	public glLightSource[] glLightSource = new glLightSource[MAX_LIGHTS];
 
 	//See here http://download.java.net/media/java3d/javadoc/1.3.2/javax/media/j3d/RenderingAttributes.html
 	// For coloring implementation details
@@ -313,7 +310,7 @@ public class Jogl2es2Context extends JoglContext
 			alphaTestEnabled = false;
 			alphaTestFunction = -1;
 			alphaTestValue = -99f;
-			
+
 			fogData.clear();
 			glFrontMaterial.clear();
 			for (int i = 0; i < MAX_LIGHTS; i++)
@@ -351,6 +348,17 @@ public class Jogl2es2Context extends JoglContext
 		perFrameStats = new Jogl2es2PerFrameStats();
 		perFrameStats.endOfPrevFrameTime = System.nanoTime();
 	}
+
+	// texture and raster fill variables
+	
+	// raster vao and buf are not in the by geom bucket because I don't get given geom
+	// background has to be created and destroyed
+
+	public int simpleTextureShaderProgramId = -1;
+	public int simpleTextureShaderProgramVertLoc = -1;
+	public int simpleTextureShaderProgramTexCoordLoc = -1;
+	public int simpleTextureShaderProgramBaseMapLoc = -1;
+	
 
 	// just a singleton of the handy matrix/array operations
 	public Jogl2es2MatrixUtil matrixUtil = new Jogl2es2MatrixUtil();
