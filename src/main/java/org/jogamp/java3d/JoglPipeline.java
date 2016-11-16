@@ -7262,6 +7262,7 @@ void swapBuffers(Canvas3D cv, Context ctx, Drawable drawable) {
     boolean releaseCtx(Context ctx) {
         if (VERBOSE) System.err.println("JoglPipeline.releaseCtx()");
         GLContext context = context(ctx);
+        if(context.isCurrent())
         context.release();
         return true;
     }

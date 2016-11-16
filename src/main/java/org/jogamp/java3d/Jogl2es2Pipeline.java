@@ -98,7 +98,7 @@ import com.jogamp.opengl.Threading;
 class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 {
 	//Note this is VERY expensive and should be false unless debugging
-	private static final boolean DO_OUTPUT_ERRORS = true;
+	private static final boolean DO_OUTPUT_ERRORS = false;
 	// Currently prints for entry points already implemented
 	static final boolean VERBOSE = false;
 	// Debugging output for graphics configuration selection
@@ -6840,7 +6840,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		int glType = GL.GL_RGBA;
 
 		disableAttribFor2D(gl);
-		
+
 		gl.glDepthMask(false);
 		gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
 		gl.glBindTexture(GL.GL_TEXTURE_2D, objectId);
@@ -7433,7 +7433,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			assert gl.isExtensionAvailable("GL_VERSION_1_3");
 		}
 
-
 		// Note that we don't query for GL_ARB_imaging here
 
 		cv.textureExtendedFeatures |= Canvas3D.TEXTURE_LOD_RANGE;
@@ -7495,7 +7494,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		cv.textureWidthMax = tmp[0];
 		cv.textureHeightMax = tmp[0];
 	}
-
 
 	private static void disableAttribFor2D(GL2ES2 gl)
 	{
@@ -7938,7 +7936,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	{
 
 		if (VERBOSE)
-			System.err.println("JoglPipeline.syncRender()");
+			System.err.println("JoglPipeline.syncRender() " + wait);
 		if (OUTPUT_PER_FRAME_STATS)
 			((Jogl2es2Context) ctx).perFrameStats.syncRenderTime = System.nanoTime();
 
@@ -7953,10 +7951,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		// also seems to be ok, just do it as well
 		if (!NEVER_RELEASE_CONTEXT)
 		{
-			// if (wait)
-			// gl.glFinish();
-			// else
-			gl.glFlush();
+			if (wait)
+				gl.glFinish();
+			else
+				gl.glFlush();
 		}
 
 	}
@@ -8044,6 +8042,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		return true;
 	}
 
+	//only used for never release, just to spot first call
 	public static boolean currently_current = false;
 
 	// Optionally release the context. Returns true if the context was released.
@@ -8137,9 +8136,9 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		if (offScreen)
 		{
-			glDrawable = drawable(cv.drawable); // cv.drawable != null, set in
-			// 'createOffScreenBuffer'
-			glContext = glDrawable.createContext(context(shareCtx));
+			glDrawable = drawable(cv.drawable); // cv.drawable != null, set in			
+			// 'createOffScreenBuffer'			
+			glContext = glDrawable.createContext(context(shareCtx));			
 		}
 		else
 		{
@@ -8164,7 +8163,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 
 		// assuming that this only gets called after addNotify has been called
-		glDrawable.setRealized(true);
+		if(!glDrawable.isRealized())
+			glDrawable.setRealized(true);
 
 		// Apparently we are supposed to make the context current at this point
 		// and set up a bunch of properties
@@ -8239,7 +8239,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			// Issue 417: JOGL: Mip-mapped NPOT textures rendered incorrectly
 			// J3D images are aligned to 1 byte
-			//gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
+			gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
 
 			// Workaround for issue 400: Enable separate specular by default
 			// gl.glLightModeli(GL2.GL_LIGHT_MODEL_COLOR_CONTROL,
@@ -8526,6 +8526,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	@Override
 	Drawable createOffScreenBuffer(Canvas3D cv, Context ctx, int width, int height)
 	{
+		
+		//OK general problem, 2 calls to setOffscreen buffer o a canvas3d will call this method once, attaching a
+		// a new drawable all good, but
+		// will then call makeNewContext twice using that same drawable, and that drawable doesn't like make current called twice
+		
+		
 		if (VERBOSE)
 			System.err.println("JoglPipeline.createOffScreenBuffer()");
 
@@ -8609,7 +8615,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	{
 		if (VERBOSE)
 			System.err.println("JoglPipeline.readOffScreenBuffer()");
-
+	
 		GLDrawable glDrawable = ((JoglDrawable) cv.drawable).getGLDrawable();
 		GLCapabilitiesImmutable chosenCaps = glDrawable.getChosenGLCapabilities();
 		GLFBODrawable fboDrawable = null;
@@ -8640,7 +8646,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		// else pbuffer
 
 		//gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, width);
-		//gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
+		gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
 
 		int type = 0;
 
@@ -8652,18 +8658,16 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			{
 			// GL_BGR
 			case ImageComponentRetained.TYPE_BYTE_BGR:
-				type = GL2.GL_BGR;
+				type = GL2.GL_BGR;// not ok
 				break;
 			case ImageComponentRetained.TYPE_BYTE_RGB:
-				type = GL.GL_RGB;
+				type = GL.GL_RGB;//ok
 				break;
 			// GL_ABGR_EXT
 			case ImageComponentRetained.TYPE_BYTE_ABGR:
 				if (isExtensionAvailable.GL_EXT_abgr(gl))
-				{ // If false,
-					// should never
-					// come here!
-					type = GL2.GL_ABGR_EXT;
+				{ // If false, should never come here!  
+					type = GL2.GL_ABGR_EXT; //ok
 				}
 				else
 				{
@@ -8672,7 +8676,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				}
 				break;
 			case ImageComponentRetained.TYPE_BYTE_RGBA:
-				type = GL.GL_RGBA;
+				type = GL.GL_RGBA;// this a valid case for GL2ES2
 				break;
 
 			/*
@@ -8690,62 +8694,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			}
 
 			gl.glReadPixels(0, 0, width, height, type, GL.GL_UNSIGNED_BYTE, ByteBuffer.wrap((byte[]) data));
-
-		}
-		else if ((dataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_ARRAY)
-				|| (dataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_BUFFER))
-		{
-
-			int intType = GL2.GL_UNSIGNED_INT_8_8_8_8;
-			boolean forceAlphaToOne = false;
-
-			switch (format)
-			{
-			/* GL_BGR */
-			case ImageComponentRetained.TYPE_INT_BGR: /* Assume XBGR format */
-				type = GL.GL_RGBA;
-				intType = GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
-				forceAlphaToOne = true;
-				break;
-			case ImageComponentRetained.TYPE_INT_RGB: /* Assume XRGB format */
-				forceAlphaToOne = true;
-				/* Fall through to next case */
-			case ImageComponentRetained.TYPE_INT_ARGB:
-				type = GL2.GL_BGRA;
-				intType = GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
-				break;
-			/*
-			 * This method only supports 3 and 4 components formats and BYTE
-			 * types.
-			 */
-			case ImageComponentRetained.TYPE_BYTE_LA:
-			case ImageComponentRetained.TYPE_BYTE_GRAY:
-			case ImageComponentRetained.TYPE_USHORT_GRAY:
-			case ImageComponentRetained.TYPE_BYTE_BGR:
-			case ImageComponentRetained.TYPE_BYTE_RGB:
-			case ImageComponentRetained.TYPE_BYTE_RGBA:
-			case ImageComponentRetained.TYPE_BYTE_ABGR:
-			default:
-				throw new AssertionError("illegal format " + format);
-			}
-
-			/* Force Alpha to 1.0 if needed */
-			// if (forceAlphaToOne) {
-			// gl.glPixelTransferf(GL2.GL_ALPHA_SCALE, 0.0f);
-			// gl.glPixelTransferf(GL2.GL_ALPHA_BIAS, 1.0f);
-			// }
-
-			gl.glReadPixels(0, 0, width, height, type, intType, IntBuffer.wrap((int[]) data));
-
-			/* Restore Alpha scale and bias */
-			// if (forceAlphaToOne) {
-			// gl.glPixelTransferf(GL2.GL_ALPHA_SCALE, 1.0f);
-			// gl.glPixelTransferf(GL2.GL_ALPHA_BIAS, 0.0f);
-			// }
+			if (DO_OUTPUT_ERRORS)
+				outputErrors(ctx);
 		}
 		else
 		{
-			throw new AssertionError("illegal image data type " + dataType);
+			throw new AssertionError("illegal image data type " + dataType + " Try creating a BufferedImage of type TYPE_3BYTE_BGR");
 		}
 
 		// If FBO

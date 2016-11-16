@@ -1866,8 +1866,11 @@ ArrayList<TextureRetained> textureIDResourceTable = new ArrayList<TextureRetaine
             }
         }
 
-	if ((offScreenCanvasSize.width != width) ||
-	    (offScreenCanvasSize.height != height)) {
+	//PJ we MUST recreate the drawable when a new offscreen buffer is requested, as the previous is 
+	// already realized and will fail on a createNewContext call
+	//if ((offScreenCanvasSize.width != width) ||
+	//    (offScreenCanvasSize.height != height)) 
+	{
 
 	    if (drawable != null) {
 		// Fix for Issue 18 and Issue 175
@@ -1887,9 +1890,9 @@ ArrayList<TextureRetained> textureIDResourceTable = new ArrayList<TextureRetaine
 	    }
 
 	}
-	else if (ctx != null) {
-            removeCtx();
-	}
+	//else if (ctx != null) {
+    //        removeCtx();
+	//}
 
         if (freeCanvasId) {
                 sendFreeCanvasId();
