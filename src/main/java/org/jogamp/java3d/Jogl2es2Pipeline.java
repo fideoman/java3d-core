@@ -494,9 +494,9 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							gd.geoToCoordBuf2 = tmp[1];
 
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
-							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.BYTES), verts, GL2ES2.GL_DYNAMIC_DRAW);
+							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_DYNAMIC_DRAW);
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
-							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.BYTES), verts, GL2ES2.GL_DYNAMIC_DRAW);
+							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_DYNAMIC_DRAW);
 
 							gd.geoToCoordBufSize = verts.remaining();
 
@@ -532,14 +532,14 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							{
 								// update 1 but set to draw 2
 								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
-								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.BYTES), verts);
+								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.SIZE / 8), verts);
 								gd.geoToCoordBuf = gd.geoToCoordBuf2;
 							}
 							else
 							{
 								// update 2 but set to draw 1
 								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
-								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.BYTES), verts);
+								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.SIZE / 8), verts);
 								gd.geoToCoordBuf = gd.geoToCoordBuf1;
 							}
 
@@ -568,7 +568,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				{
 					clrs.position(0);
 					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToColorBuf);
-					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, clrs.remaining() * Float.BYTES, clrs);
+					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, clrs.remaining() * Float.SIZE / 8, clrs);
 				}
 			}
 
@@ -1107,9 +1107,11 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 								gd.geoToCoordBuf2 = tmp[1];
 
 								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
-								gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.BYTES), fverts, GL2ES2.GL_DYNAMIC_DRAW);
+								gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.SIZE / 8), fverts,
+										GL2ES2.GL_DYNAMIC_DRAW);
 								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
-								gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.BYTES), fverts, GL2ES2.GL_DYNAMIC_DRAW);
+								gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.SIZE / 8), fverts,
+										GL2ES2.GL_DYNAMIC_DRAW);
 
 								gd.geoToCoordBufSize = fverts.remaining();
 
@@ -1145,14 +1147,14 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 								{
 									// update 1 but set to draw 2
 									gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
-									gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (fverts.remaining() * Float.BYTES), fverts);
+									gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (fverts.remaining() * Float.SIZE / 8), fverts);
 									gd.geoToCoordBuf = gd.geoToCoordBuf2;
 								}
 								else
 								{
 									// update 2 but set to draw 1
 									gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
-									gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (fverts.remaining() * Float.BYTES), fverts);
+									gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (fverts.remaining() * Float.SIZE / 8), fverts);
 									gd.geoToCoordBuf = gd.geoToCoordBuf1;
 								}
 
@@ -1190,7 +1192,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				{
 					fclrs.position(0);
 					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToColorBuf);
-					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, fclrs.remaining() * Float.BYTES, fclrs);
+					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, fclrs.remaining() * Float.SIZE / 8, fclrs);
 				}
 			}
 			if (normalsDefined && locs.glNormal != -1)
@@ -1201,7 +1203,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				{
 					norms.position(0);
 					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToNormalBuf);
-					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, norms.remaining() * Float.BYTES, norms);
+					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, norms.remaining() * Float.SIZE / 8, norms);
 				}
 			}
 
@@ -1221,7 +1223,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							HashMap<Integer, Integer> bufIds = gd.geoToVertAttribBuf;
 							Integer bufId = bufIds.get(index);
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, bufId.intValue());
-							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, vertexAttrs.remaining() * Float.BYTES, vertexAttrs);
+							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, vertexAttrs.remaining() * Float.SIZE / 8, vertexAttrs);
 						}
 					}
 				}
@@ -1243,7 +1245,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							HashMap<Integer, Integer> bufIds = gd.geoToTexCoordsBuf;
 							Integer bufId = bufIds.get(texUnit);
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, bufId.intValue());
-							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, buf.remaining() * Float.BYTES, buf);
+							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, buf.remaining() * Float.SIZE / 8, buf);
 						}
 					}
 				}
@@ -1800,9 +1802,9 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							gd.geoToCoordBuf2 = tmp[1];
 
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
-							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.BYTES), verts, GL2ES2.GL_DYNAMIC_DRAW);
+							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_DYNAMIC_DRAW);
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
-							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.BYTES), verts, GL2ES2.GL_DYNAMIC_DRAW);
+							gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_DYNAMIC_DRAW);
 
 							gd.geoToCoordBufSize = verts.remaining();
 
@@ -1838,14 +1840,14 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							{
 								// update 1 but set to draw 2
 								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
-								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.BYTES), verts);
+								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.SIZE / 8), verts);
 								gd.geoToCoordBuf = gd.geoToCoordBuf2;
 							}
 							else
 							{
 								// update 2 but set to draw 1
 								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
-								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.BYTES), verts);
+								gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (verts.remaining() * Float.SIZE / 8), verts);
 								gd.geoToCoordBuf = gd.geoToCoordBuf1;
 							}
 
@@ -1874,7 +1876,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				{
 					clrs.position(0);
 					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToColorBuf);
-					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, clrs.remaining() * Float.BYTES, clrs);
+					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, clrs.remaining() * Float.SIZE / 8, clrs);
 				}
 			}
 
@@ -2438,10 +2440,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 								gd.geoToCoordBuf2 = tmp[1];
 
 								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
-								gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.BYTES), fverts, GL2ES2.GL_STATIC_DRAW);
+								gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.SIZE / 8), fverts,
+										GL2ES2.GL_STATIC_DRAW);
 
 								gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
-								gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.BYTES), fverts, GL2ES2.GL_STATIC_DRAW);
+								gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.SIZE / 8), fverts,
+										GL2ES2.GL_STATIC_DRAW);
 
 								gd.geoToCoordBufSize = fverts.remaining();
 
@@ -2477,7 +2481,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 								{
 									// update 1 but set to draw 2
 									gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
-									gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (fverts.remaining() * Float.BYTES), fverts);
+									gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (fverts.remaining() * Float.SIZE / 8), fverts);
 									gd.geoToCoordBuf = gd.geoToCoordBuf2;
 
 								}
@@ -2485,7 +2489,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 								{
 									// update 2 but set to draw 1
 									gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
-									gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (fverts.remaining() * Float.BYTES), fverts);
+									gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, (fverts.remaining() * Float.SIZE / 8), fverts);
 									gd.geoToCoordBuf = gd.geoToCoordBuf1;
 								}
 
@@ -2522,7 +2526,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				{
 					fclrs.position(0);
 					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToColorBuf);
-					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, fclrs.remaining() * Float.BYTES, fclrs);
+					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, fclrs.remaining() * Float.SIZE / 8, fclrs);
 				}
 			}
 			if (normalsDefined && locs.glNormal != -1)
@@ -2533,7 +2537,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				{
 					norms.position(0);
 					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToNormalBuf);
-					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, norms.remaining() * Float.BYTES, norms);
+					gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, norms.remaining() * Float.SIZE / 8, norms);
 				}
 			}
 
@@ -2553,7 +2557,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							HashMap<Integer, Integer> bufIds = gd.geoToVertAttribBuf;
 							Integer bufId = bufIds.get(index);
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, bufId.intValue());
-							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, vertexAttrs.remaining() * Float.BYTES, vertexAttrs);
+							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, vertexAttrs.remaining() * Float.SIZE / 8, vertexAttrs);
 						}
 					}
 				}
@@ -2575,7 +2579,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							HashMap<Integer, Integer> bufIds = gd.geoToTexCoordsBuf;
 							Integer bufId = bufIds.get(texUnit);
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, bufId.intValue());
-							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, buf.remaining() * Float.BYTES, buf);
+							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, buf.remaining() * Float.SIZE / 8, buf);
 						}
 					}
 				}
@@ -3484,14 +3488,14 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						locs.genAttIndexToLoc.put(index, new Integer(attribLoc));
 					}
 				}
-				
+
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 			}
 
 			pd.programToLocationData = locs;
 		}
-		
+
 	}
 
 	private static GeometryData loadAllBuffers(Jogl2es2Context ctx, GL2ES2 gl, GeometryArrayRetained geo, boolean ignoreVertexColors,
@@ -3525,10 +3529,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				gd.geoToCoordBuf2 = tmp[1];
 				gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
 				int usage = morphable ? GL2ES2.GL_DYNAMIC_DRAW : GL2ES2.GL_STATIC_DRAW;
-				gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.BYTES), fverts, usage);
+				gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.SIZE / 8), fverts, usage);
 
 				gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
-				gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.BYTES), fverts, usage);
+				gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.SIZE / 8), fverts, usage);
 			}
 			else
 			{
@@ -3538,7 +3542,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 				gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf);
 				int usage = morphable ? GL2ES2.GL_DYNAMIC_DRAW : GL2ES2.GL_STATIC_DRAW;
-				gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.BYTES), fverts, usage);
+				gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.SIZE / 8), fverts, usage);
 			}
 			if (DO_OUTPUT_ERRORS)
 				outputErrors(ctx);
@@ -3571,7 +3575,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						gd.geoToColorBuf = tmp[0];
 
 						gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToColorBuf);
-						gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, fclrs.remaining() * Float.BYTES, fclrs, GL2ES2.GL_STATIC_DRAW);
+						gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, fclrs.remaining() * Float.SIZE / 8, fclrs, GL2ES2.GL_STATIC_DRAW);
 					}
 					else
 					{
@@ -3636,10 +3640,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					gd.geoToCoordBuf2 = tmp[1];
 					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf1);
 					int usage = morphable ? GL2ES2.GL_DYNAMIC_DRAW : GL2ES2.GL_STATIC_DRAW;
-					gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.BYTES), fverts, usage);
+					gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.SIZE / 8), fverts, usage);
 
 					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf2);
-					gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.BYTES), fverts, usage);
+					gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.SIZE / 8), fverts, usage);
 				}
 				else
 				{
@@ -3649,7 +3653,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToCoordBuf);
 					int usage = morphable ? GL2ES2.GL_DYNAMIC_DRAW : GL2ES2.GL_STATIC_DRAW;
-					gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.BYTES), fverts, usage);
+					gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (fverts.remaining() * Float.SIZE / 8), fverts, usage);
 				}
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
@@ -3677,7 +3681,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				gd.geoToColorBuf = tmp[0];
 
 				gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToColorBuf);
-				gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, fclrs.remaining() * Float.BYTES, fclrs, GL2ES2.GL_STATIC_DRAW);
+				gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, fclrs.remaining() * Float.SIZE / 8, fclrs, GL2ES2.GL_STATIC_DRAW);
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 
@@ -3698,7 +3702,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				gd.geoToNormalBuf = tmp[0];
 
 				gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, gd.geoToNormalBuf);
-				gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, norms.remaining() * Float.BYTES, norms, GL2ES2.GL_STATIC_DRAW);
+				gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, norms.remaining() * Float.SIZE / 8, norms, GL2ES2.GL_STATIC_DRAW);
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 
@@ -3731,7 +3735,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					bufIds.put(index, bufId);
 
 					gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, bufId.intValue());
-					gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, vertexAttrs.remaining() * Float.BYTES, vertexAttrs, GL2ES2.GL_STATIC_DRAW);
+					gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, vertexAttrs.remaining() * Float.SIZE / 8, vertexAttrs, GL2ES2.GL_STATIC_DRAW);
 					if (DO_OUTPUT_ERRORS)
 						outputErrors(ctx);
 
@@ -3770,7 +3774,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						bufId = new Integer(tmp[0]);
 
 						gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, bufId.intValue());
-						gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, buf.remaining() * Float.BYTES, buf, GL2ES2.GL_STATIC_DRAW);
+						gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, buf.remaining() * Float.SIZE / 8, buf, GL2ES2.GL_STATIC_DRAW);
 						if (DO_OUTPUT_ERRORS)
 							outputErrors(ctx);
 						bufIds.put(texUnit, bufId);
@@ -3797,6 +3801,141 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	}
 
 	// called by the 2 executes above
+
+	// Native method for readRaster
+	@Override
+	void readRaster(Context ctx, int type, int xSrcOffset, int ySrcOffset, int width, int height, int hCanvas, int imageDataType,
+			int imageFormat, Object imageBuffer, int depthFormat, Object depthBuffer)
+	{
+		Jogl2es2Context joglesctx = (Jogl2es2Context) ctx;
+		GL2ES2 gl = joglesctx.gl2es2();
+
+		//gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, width);
+		gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
+		if (DO_OUTPUT_ERRORS)
+			outputErrors(ctx);
+		int yAdjusted = hCanvas - height - ySrcOffset;
+
+		if ((type & Raster.RASTER_COLOR) != 0)
+		{
+			int oglFormat = 0;
+			if (imageDataType == ImageComponentRetained.IMAGE_DATA_TYPE_BYTE_ARRAY)
+			{
+
+				switch (imageFormat)
+				{
+				case ImageComponentRetained.TYPE_BYTE_BGR:
+					oglFormat = GL2ES2.GL_BGR;
+					break;
+				case ImageComponentRetained.TYPE_BYTE_RGB:
+					oglFormat = GL2ES2.GL_RGB;
+					break;
+				case ImageComponentRetained.TYPE_BYTE_ABGR:
+					oglFormat = GL2ES2.GL_RGBA;
+					break;
+				case ImageComponentRetained.TYPE_BYTE_RGBA:
+					// all RGB types are stored as RGBA
+					oglFormat = GL2ES2.GL_RGBA;
+					break;
+				case ImageComponentRetained.TYPE_BYTE_LA:
+					// all LA types are stored as LA8
+					oglFormat = GL2ES2.GL_LUMINANCE_ALPHA;
+					break;
+				case ImageComponentRetained.TYPE_BYTE_GRAY:
+				case ImageComponentRetained.TYPE_USHORT_GRAY:
+				case ImageComponentRetained.TYPE_INT_BGR:
+				case ImageComponentRetained.TYPE_INT_RGB:
+				case ImageComponentRetained.TYPE_INT_ARGB:
+				default:
+					assert false;
+					return;
+				}
+
+				gl.glReadPixels(xSrcOffset, yAdjusted, width, height, oglFormat, GL.GL_UNSIGNED_BYTE,
+						ByteBuffer.wrap((byte[]) imageBuffer));
+				if (DO_OUTPUT_ERRORS)
+					outputErrors(ctx);
+			}
+			else if (imageDataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_ARRAY)
+			{
+				int intType = GL2.GL_UNSIGNED_INT_8_8_8_8;
+				//boolean forceAlphaToOne = false;
+
+				switch (imageFormat)
+				{
+				/* GL_BGR */
+				case ImageComponentRetained.TYPE_INT_BGR: /* Assume XBGR format */
+					oglFormat = GL.GL_RGBA;
+					intType = GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
+					//forceAlphaToOne = true;
+					break;
+				case ImageComponentRetained.TYPE_INT_RGB: /* Assume XRGB format */
+					//forceAlphaToOne = true;
+					/* Fall through to next case */
+				case ImageComponentRetained.TYPE_INT_ARGB:
+					oglFormat = GL2.GL_BGRA;
+					intType = GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
+					break;
+				/* This method only supports 3 and 4 components formats and INT types. */
+				case ImageComponentRetained.TYPE_BYTE_LA:
+				case ImageComponentRetained.TYPE_BYTE_GRAY:
+				case ImageComponentRetained.TYPE_USHORT_GRAY:
+				case ImageComponentRetained.TYPE_BYTE_BGR:
+				case ImageComponentRetained.TYPE_BYTE_RGB:
+				case ImageComponentRetained.TYPE_BYTE_RGBA:
+				case ImageComponentRetained.TYPE_BYTE_ABGR:
+				default:
+					assert false;
+					return;
+				}
+
+				// Force Alpha to 1.0 if needed
+				//if (forceAlphaToOne
+				//{
+				//	gl.glPixelTransferf(GL2.GL_ALPHA_SCALE, 0.0f);
+				//	gl.glPixelTransferf(GL2.GL_ALPHA_BIAS, 1.0f);
+				//}
+
+				gl.glReadPixels(xSrcOffset, yAdjusted, width, height, oglFormat, intType, IntBuffer.wrap((int[]) imageBuffer));
+				if (DO_OUTPUT_ERRORS)
+					outputErrors(ctx);
+				// Restore Alpha scale and bias
+				//if (forceAlphaToOne)
+				//{
+				//	gl.glPixelTransferf(GL2.GL_ALPHA_SCALE, 1.0f);
+				//	gl.glPixelTransferf(GL2.GL_ALPHA_BIAS, 0.0f);
+				//}
+
+			}
+			else
+			{
+				assert false;
+			}
+		}
+
+		if ((type & Raster.RASTER_DEPTH) != 0)
+		{
+			throw new UnsupportedOperationException("To get depth you should use a shader that return depth info for gl2es2 then read from color");
+			/*if (depthFormat == DepthComponentRetained.DEPTH_COMPONENT_TYPE_INT)
+			{
+				// yOffset is adjusted for OpenGL - Y upward
+				gl.glReadPixels(xSrcOffset, yAdjusted, width, height, GL2.GL_DEPTH_COMPONENT, GL.GL_UNSIGNED_INT,
+						IntBuffer.wrap((int[]) depthBuffer));
+				if (DO_OUTPUT_ERRORS)
+					outputErrors(ctx);
+			}
+			else
+			{
+				// DEPTH_COMPONENT_TYPE_FLOAT
+				// yOffset is adjusted for OpenGL - Y upward
+				gl.glReadPixels(xSrcOffset, yAdjusted, width, height, GL2.GL_DEPTH_COMPONENT, GL.GL_FLOAT,
+						FloatBuffer.wrap((float[]) depthBuffer));
+				if (DO_OUTPUT_ERRORS)
+					outputErrors(ctx);
+			}*/
+		}
+
+	}
 
 	// ---------------------------------------------------------------------
 
@@ -4458,7 +4597,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	private static int unbox(ShaderAttrLoc loc)
 	{
 		if (loc == null)
-			return -1;
+			return -1;//0 is a valid location
 		return ((JoglShaderObject) loc).getValue();
 	}
 
@@ -7470,8 +7609,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		//NOTE .order(ByteOrder.nativeOrder())!!!
 		int vcount = 6;
-		FloatBuffer verts = ByteBuffer.allocateDirect(Float.BYTES * 3 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
-		FloatBuffer tcs = ByteBuffer.allocateDirect(Float.BYTES * 2 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		FloatBuffer verts = ByteBuffer.allocateDirect(Float.SIZE / 8 * 3 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		FloatBuffer tcs = ByteBuffer.allocateDirect(Float.SIZE / 8 * 2 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
 
 		// add a Z so we stay closer to textureFillRaster
 		float mapZ = 0f;
@@ -7504,11 +7643,11 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (DO_OUTPUT_ERRORS)
 			outputErrors(ctx);
 		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, vertBufId);
-		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.BYTES), verts, GL2ES2.GL_STREAM_DRAW);
+		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_STREAM_DRAW);
 		if (DO_OUTPUT_ERRORS)
 			outputErrors(ctx);
 		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, tcBufId);
-		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (tcs.remaining() * Float.BYTES), tcs, GL2ES2.GL_STREAM_DRAW);
+		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (tcs.remaining() * Float.SIZE / 8), tcs, GL2ES2.GL_STREAM_DRAW);
 		if (DO_OUTPUT_ERRORS)
 			outputErrors(ctx);
 
@@ -7599,7 +7738,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		Jogl2es2Context jctx = (Jogl2es2Context) ctx;
 		GL2ES2 gl = jctx.gl2es2();
 
-		disableAttribForRaster(gl); 
+		disableAttribForRaster(gl);
 
 		// Setup filter mode if needed 
 		if (useBilinearFilter)
@@ -7622,8 +7761,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		//NOTE .order(ByteOrder.nativeOrder())!!!
 		int vcount = 6;
-		FloatBuffer verts = ByteBuffer.allocateDirect(Float.BYTES * 3 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
-		FloatBuffer tcs = ByteBuffer.allocateDirect(Float.BYTES * 2 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		FloatBuffer verts = ByteBuffer.allocateDirect(Float.SIZE / 8 * 3 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		FloatBuffer tcs = ByteBuffer.allocateDirect(Float.SIZE / 8 * 2 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
 
 		texMinV = 1 - texMinV;//Y-up has flipped them?
 		texMaxV = 1 - texMaxV;//Y-up has flipped them
@@ -7653,11 +7792,11 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (DO_OUTPUT_ERRORS)
 			outputErrors(ctx);
 		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, vertBufId);
-		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.BYTES), verts, GL2ES2.GL_STREAM_DRAW);
+		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_STREAM_DRAW);
 		if (DO_OUTPUT_ERRORS)
 			outputErrors(ctx);
 		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, tcBufId);
-		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (tcs.remaining() * Float.BYTES), tcs, GL2ES2.GL_STREAM_DRAW);
+		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (tcs.remaining() * Float.SIZE / 8), tcs, GL2ES2.GL_STREAM_DRAW);
 		if (DO_OUTPUT_ERRORS)
 			outputErrors(ctx);
 
@@ -7744,20 +7883,21 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	{
 		if (VERBOSE)
 			System.err.println("JoglPipeline.executeRasterDepth()");
-		GLContext context = context(ctx);
-		GL2 gl = context.getGL().getGL2();
-
+		Jogl2es2Context jctx = (Jogl2es2Context) ctx;
+		GL2ES2 gl = jctx.gl2es2();
+		throw new UnsupportedOperationException("To get depth you should use a shader that return depth info for gl2es2 then read from color");
+		/*
 		gl.glRasterPos3f(posX, posY, posZ);
 
 		int[] drawBuf = new int[1];
 		gl.glGetIntegerv(GL2.GL_DRAW_BUFFER, drawBuf, 0);
-		/* disable draw buffer */
+		// disable draw buffer 
 		gl.glDrawBuffer(GL.GL_NONE);
 
-		/*
-		 * raster position is upper left corner, default for Java3D
-		 * ImageComponent currently has the data reverse in Y
-		 */
+		
+		 // raster position is upper left corner, default for Java3D
+		 // ImageComponent currently has the data reverse in Y
+		 
 		gl.glPixelZoom(1.0f, -1.0f);
 		gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, depthWidth);
 		if (srcOffsetX >= 0)
@@ -7798,17 +7938,17 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			gl.glDrawPixels(rasterWidth, rasterHeight, GL2.GL_DEPTH_COMPONENT, GL.GL_UNSIGNED_INT, IntBuffer.wrap((int[]) depthData));
 		}
 		else
-		{ /* DepthComponentRetained.DEPTH_COMPONENT_TYPE_FLOAT */
+		{ // DepthComponentRetained.DEPTH_COMPONENT_TYPE_FLOAT 
 			gl.glDrawPixels(rasterWidth, rasterHeight, GL2.GL_DEPTH_COMPONENT, GL.GL_FLOAT, FloatBuffer.wrap((float[]) depthData));
 		}
 
-		/* re-enable draw buffer */
+		// re-enable draw buffer 
 		gl.glDrawBuffer(drawBuf[0]);
 
 		gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, 0);
 		gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, 0);
 		gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, 0);
-
+*/
 	}
 
 	/**

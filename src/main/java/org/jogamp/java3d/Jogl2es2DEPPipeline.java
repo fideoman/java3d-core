@@ -31,7 +31,7 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 	public static final String VALID_FORMAT_MESSAGE = "The Gl2ES2 pipeline only supports a subset of the Geometry data types and formats. \n"//
 			+ "Coordinates must be defined and float type, colors must be float type, if defined. \n"//
 			+ "J3DGraphics2D of Canvas3D is not supported \n"//
-			+ "Rasters and Decaling is not supported. \n"//
+			+ "Decaling is not supported. \n"//
 			+ "Model Clip is not supported and must be reimplemented in shaders \n"//
 			+ "QuadArray or IndexedQuadArray cannot be supported. \n"//
 			+ "Texture Coordinate generation cannot be supported. \n" //
@@ -39,6 +39,7 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 			+ "Texture3D cannot be supported. \n"//
 			+ "Accum style anti-aliasing cannot be supported. \n"//
 			+ "RasterOps from RenderingAttributes cannot be used. \n"//
+			+ "ReadRaster for depth requires a custom shader and color read instead. \n"//
 			+ "It is strongly recomended that you use the format GeometryArray.USE_NIO_BUFFER = true. \n"//
 			+ "Note LineArray and LineStripArray will not render as nicely as the fixed function pipeline.";//
 
@@ -90,23 +91,7 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 				+ "System.setProperty(\"j3d.displaylist\", \"false\"); to avoid this issue. \n"
 				+ "Please note the recommended solution is to use NIO buffers. \n" + VALID_FORMAT_MESSAGE);
 	}
-
-	// ---------------------------------------------------------------------
-
-	//
-	// GraphicsContext3D methods
-	//
-
-	// Native method for readRaster
-	// REMOVE FOR SIMPLICITY, POSSIBLY ADD BACK LATER
-	@Override
-	@Deprecated
-	void readRaster(Context ctx, int type, int xSrcOffset, int ySrcOffset, int width, int height, int hCanvas, int imageDataType,
-			int imageFormat, Object imageBuffer, int depthFormat, Object depthBuffer)
-	{
-
-		throw new UnsupportedOperationException("Read Raster call not support in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
-	}
+ 
 
 	// ---------------------------------------------------------------------
 
