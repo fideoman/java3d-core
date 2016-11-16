@@ -3915,7 +3915,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		if ((type & Raster.RASTER_DEPTH) != 0)
 		{
-			throw new UnsupportedOperationException("To get depth you should use a shader that return depth info for gl2es2 then read from color");
+			throw new UnsupportedOperationException(
+					"To get depth you should use a shader that return depth info for gl2es2 then read from color");
 			/*if (depthFormat == DepthComponentRetained.DEPTH_COMPONENT_TYPE_INT)
 			{
 				// yOffset is adjusted for OpenGL - Y upward
@@ -6827,6 +6828,134 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		return tmp[0];
 	}
 
+	@Override
+	void texturemapping(Context ctx, int px, int py, int minX, int minY, int maxX, int maxY, int texWidth, int texHeight, int rasWidth,
+			int format, int objectId, byte[] imageYdown, int winWidth, int winHeight)
+	{
+		if (VERBOSE)
+			System.err.println("JoglPipeline.texturemapping()");
+
+		GL2ES2 gl = ((Jogl2es2Context) ctx).gl2es2();
+
+		int glType = GL.GL_RGBA;
+
+		disableAttribFor2D(gl);
+		
+		gl.glDepthMask(false);
+		gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
+		gl.glBindTexture(GL.GL_TEXTURE_2D, objectId);
+		// set up texture parameter
+		gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+		gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+		gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
+		gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT);
+
+		//gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL.GL_REPLACE);
+		gl.glEnable(GL.GL_BLEND);
+		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+
+		//gl.glEnable(GL.GL_TEXTURE_2D);
+
+		//gl.glPushAttrib(GL2.GL_TRANSFORM_BIT);
+		//gl.glMatrixMode(GL.GL_TEXTURE);
+		//gl.glLoadIdentity();
+		//gl.glPopAttrib();
+
+		// loaded identity modelview and projection matrix
+		//gl.glMatrixMode(GL2.GL_PROJECTION);
+		//gl.glLoadIdentity();
+
+		//NOTE! winWidth and winHeight! multiplied into the quad xy below
+		//gl.glOrtho(0.0, winWidth, 0.0, winHeight, 0.0, 0.0);
+
+		//gl.glMatrixMode(GL2.GL_MODELVIEW);
+		//gl.glLoadIdentity();
+
+		if (isExtensionAvailable.GL_EXT_abgr(gl))
+		{
+			glType = GL2.GL_ABGR_EXT;
+		}
+		else
+		{
+			switch (format)
+			{
+			case ImageComponentRetained.TYPE_BYTE_RGBA:
+				glType = GL.GL_RGBA;
+				break;
+			case ImageComponentRetained.TYPE_BYTE_RGB:
+				glType = GL.GL_RGB;
+				break;
+			}
+		}
+
+		//gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, rasWidth);
+		//gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, minX);
+		//gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, minY);
+		gl.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, minX, minY, maxX - minX, maxY - minY, glType, GL.GL_UNSIGNED_BYTE,
+				ByteBuffer.wrap(imageYdown));
+		//gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, 0);
+		//gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, 0);
+		//gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, 0);
+
+		float texMinU = (float) minX / (float) texWidth;
+		float texMinV = (float) minY / (float) texHeight;
+		float texMaxU = (float) maxX / (float) texWidth;
+		float texMaxV = (float) maxY / (float) texHeight;
+		float halfWidth = winWidth / 2.0f;
+		float halfHeight = winHeight / 2.0f;
+
+		float mapMinX = ((px + minX) - halfWidth) / halfWidth;
+		float mapMinY = (halfHeight - (py + maxY)) / halfHeight;
+		float mapMaxX = (px + maxX - halfWidth) / halfWidth;
+		float mapMaxY = (halfHeight - (py + minY)) / halfHeight;
+
+		float mapZ = 0;
+
+		//NOTE!!!!!! very very well, tex*V is swapped max/min in order to upright the Y of the image!!
+		renderTexturedQuad(ctx, texMinU, texMaxU, texMaxV, texMinV, mapMinX, mapMaxX, mapMinY, mapMaxY, mapZ);
+
+		// Java 3D always clears the Z-buffer
+		gl.glDepthMask(true);
+		gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
+		//gl.glPopAttrib();
+	}
+
+	@Override
+	boolean initTexturemapping(Context ctx, int texWidth, int texHeight, int objectId)
+	{
+		if (VERBOSE)
+			System.err.println("JoglPipeline.initTexturemapping()");
+
+		GL2ES2 gl = ((Jogl2es2Context) ctx).gl2es2();
+
+		gl.glBindTexture(GL.GL_TEXTURE_2D, objectId);
+
+		int glType = GL.GL_RGBA;
+		if (isExtensionAvailable.GL_EXT_abgr(gl))
+		{
+			glType = GL2.GL_ABGR_EXT;
+		}
+		else
+		{
+			glType = GL.GL_RGBA;
+		}
+		//some sort of memory space check below?
+		/*gl.glTexImage2D(GL2.GL_PROXY_TEXTURE_2D, 0, GL2ES2.GL_RGBA, texWidth, texHeight, 0, glType, GL.GL_UNSIGNED_BYTE, null);
+		
+		int[] width = new int[1];
+		gl.glGetTexLevelParameteriv(GL2.GL_PROXY_TEXTURE_2D, 0, GL2.GL_TEXTURE_WIDTH, width, 0);
+		
+		if (width[0] <= 0)
+		{
+			return false;
+		}*/
+
+		// init texture size only without filling the pixels
+		gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, texWidth, texHeight, 0, glType, GL.GL_UNSIGNED_BYTE, null);
+
+		return true;
+	}
+
 	// Set glDepthMask.
 	@Override
 	void setDepthBufferWriteEnable(Context ctx, boolean mode)
@@ -7191,7 +7320,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		cv.nativeGraphicsVendor = glVendor;
 		cv.nativeGraphicsRenderer = glRenderer;
 
-		// PJPJPJPJ just for debug
+		// just for debug
 		// System.out.println("***glVersion " +glVersion);
 		// System.out.println("***glVendor " +glVendor);
 		// System.out.println("***glRenderer " +glRenderer);
@@ -7215,7 +7344,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		if (major < 1 || (major == 1 && minor < 2))
 		{
-			// In some double createNewContext uses or getPerferredConfiguration called before a Frame is constructed
+			// In some double createNewContext uses or where getPreferredConfiguration is called before a Frame is constructed
 			// the disabling of D3D can cause this issue
 			// see Bug 1201 - Crash with option "sun.java2d.d3d=false"
 			// https://jogamp.org/bugzilla/show_bug.cgi?id=1201
@@ -7304,8 +7433,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			assert gl.isExtensionAvailable("GL_VERSION_1_3");
 		}
 
-		// Set up properties for OpenGL 1.3
-		// cv.textureExtendedFeatures |= Canvas3D.TEXTURE_3D;
 
 		// Note that we don't query for GL_ARB_imaging here
 
@@ -7341,10 +7468,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		// Setup multisample
 		// FIXME: this is not correct for the Windows platform yet
-		//FIXME: this might be tricky, if I screw around the accum calls turn on again
+		// FIXME: this might be tricky, if I muck around the accum calls turn on again
 		// ES2 has new enable/disable on GL_SAMPLE_ALPHA_TO_COVERAGE and GL_SAMPLE_COVERAGE
 		// and GL2 and ES2 both have glSampleCoverage calls
-		// Renderer line 1158 is teh guy that goes for accum if this is not set
+		// Renderer line 1158 is the guy that goes for accum if this is not set
 		if (gl13)
 		{
 			cv.extensionsSupported |= Canvas3D.MULTISAMPLE;
@@ -7357,10 +7484,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			//gl.glDisable(GL2ES2.GL_MULTISAMPLE);
 		}
 
-		// Check texture extensions
 		checkTextureExtensions(cv, ctx, gl, gl13);
 
-		// Check shader extensions
 		checkGLSLShaderExtensions(cv, ctx, gl, gl13);
 
 		cv.textureBoundaryWidthMax = 1;
@@ -7369,76 +7494,26 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		gl.glGetIntegerv(GL2ES2.GL_MAX_TEXTURE_SIZE, tmp, 0);
 		cv.textureWidthMax = tmp[0];
 		cv.textureHeightMax = tmp[0];
-
-		/*tmp[0] = -1;
-		gl.glGetIntegerv(GL2ES2.GL_MAX_3D_TEXTURE_SIZE, tmp, 0);
-		cv.texture3DWidthMax = tmp[0];
-		cv.texture3DHeightMax = tmp[0];
-		cv.texture3DDepthMax = tmp[0];*/
 	}
 
-	/*
-	  * Function to disable most rendering attributes when doing a 2D
-	  * clear, image copy, or image composite operation. Note that the
-	  * caller must save/restore the attributes with
-	  * pushAttrib(GL_ENABLE_BIT|...) and popAttrib()
-	  */
+
 	private static void disableAttribFor2D(GL2ES2 gl)
 	{
-		//Only a few of these exist for ES2
-		//alpha, fog, lighting material are all shader ops 
-		//gl.glDisable(GL2.GL_ALPHA_TEST);
 		gl.glDisable(GL.GL_BLEND);
-		//gl.glDisable(GL.GL_COLOR_LOGIC_OP);
-		//gl.glDisable(GL2.GL_COLOR_MATERIAL);
 		gl.glDisable(GL.GL_CULL_FACE);
 		gl.glDisable(GL.GL_DEPTH_TEST);
-		//gl.glDisable(GL2.GL_FOG);
-		//gl.glDisable(GL2.GL_LIGHTING);
 		gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
-		//gl.glDisable(GL2.GL_POLYGON_STIPPLE);
 		gl.glDisable(GL.GL_STENCIL_TEST);
-		//gl.glDisable(GL.GL_TEXTURE_2D);
-		//gl.glDisable(GL2.GL_TEXTURE_GEN_Q);
-		//gl.glDisable(GL2.GL_TEXTURE_GEN_R);
-		//gl.glDisable(GL2.GL_TEXTURE_GEN_S);
-		//gl.glDisable(GL2.GL_TEXTURE_GEN_T);
-
-		//for (int i = 0; i < 6; i++) {
-		//    gl.glDisable(GL2.GL_CLIP_PLANE0 + i);
-		//}
-
-		//gl.glDisable(GL2.GL_TEXTURE_3D);
-		//gl.glDisable(GL.GL_TEXTURE_CUBE_MAP);
-
-		// FIXME: GL_NV_register_combiners
-		//	        if (gl.isExtensionAvailable("GL_NV_register_combiners")) {
-		//	            gl.glDisable(GL.GL_REGISTER_COMBINERS_NV);
-		//	        }
-		// FIXME: GL_SGI_texture_color_table
-		//	        if (gl.isExtensionAvailable("GL_SGI_texture_color_table")) {
-		//	            gl.glDisable(GL.GL_TEXTURE_COLOR_TABLE_SGI);
-		//	        }
 	}
 
 	private static void disableAttribForRaster(GL2ES2 gl)
 	{
-
-		//gl.glDisable(GL2.GL_COLOR_MATERIAL);
 		gl.glDisable(GL.GL_CULL_FACE);
-		//gl.glDisable(GL2.GL_LIGHTING);
 		gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
-		//gl.glDisable(GL2.GL_POLYGON_STIPPLE);
-
-		// TODO: Disable if Raster.CLIP_POSITION is true
-		//	      for (int i = 0; i < 6; i++) {
-		//	          gl.glDisable(GL2.GL_CLIP_PLANE0 + i);
-		//	      }
-
 	}
 
 	// Not needed generally as transpose can be called on the inteface with gl
-	private static void copyTranspose(double[] src, double[] dst)
+	public static void copyTranspose(double[] src, double[] dst)
 	{
 		dst[0] = src[0];
 		dst[1] = src[4];
@@ -7576,47 +7651,23 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		return shaderProgramHandle;
 	}
 
-	@Override
-	void textureFillBackground(Context ctx, float texMinU, float texMaxU, float texMinV, float texMaxV, float mapMinX, float mapMaxX,
-			float mapMinY, float mapMaxY, boolean useBilinearFilter)
+	/**
+	 * Texture 0 must be bound by now
+	 * @param texMinU 
+	 */
+	private static void renderTexturedQuad(Context ctx, float texMinU, float texMaxU, float texMinV, float texMaxV, float mapMinX,
+			float mapMaxX, float mapMinY, float mapMaxY, float mapZ)
 	{
 		if (VERBOSE)
-			System.err.println("JoglPipeline.textureFillBackground()");
+			System.err.println("JoglPipeline.renderTexturedQuad()");
 
 		Jogl2es2Context jctx = (Jogl2es2Context) ctx;
 		GL2ES2 gl = jctx.gl2es2();
-
-		disableAttribFor2D(gl);
-
-		// Setup filter mode if needed 
-		if (useBilinearFilter)
-		{
-			// System.err.println("JoglPipeline - Raster  : use bilinear filter\n");
-			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
-			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
-			if (DO_OUTPUT_ERRORS)
-				outputErrors(ctx);
-		}
-
-		//gl.glColor4f(1.0f, 1.0f, 1.0f, alpha);
-		//TODO: alpha value!! make sure blending on and use the alpha value in shader
-
-		gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
-		if (DO_OUTPUT_ERRORS)
-			outputErrors(ctx);
-
-		//gl.glOrtho(0.0, 1.0, 0.0, 1.0, 0.0, 1.0); //note [0,1] not the normal [-1,1]
 
 		//NOTE .order(ByteOrder.nativeOrder())!!!
 		int vcount = 6;
 		FloatBuffer verts = ByteBuffer.allocateDirect(Float.SIZE / 8 * 3 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
 		FloatBuffer tcs = ByteBuffer.allocateDirect(Float.SIZE / 8 * 2 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
-
-		// add a Z so we stay closer to textureFillRaster
-		float mapZ = 0f;
-
-		texMinV = 1 - texMinV;//Y-up has flipped them
-		texMaxV = 1 - texMaxV;//Y-up has flipped them
 
 		//CCW windings for fun (cull face should make unnecessary
 		tcs.put(texMinU).put(texMinV);
@@ -7725,6 +7776,44 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		if (tcBufId != -1)
 			gl.glDeleteBuffers(1, new int[] { tcBufId }, 0);
+	}
+
+	@Override
+	void textureFillBackground(Context ctx, float texMinU, float texMaxU, float texMinV, float texMaxV, float mapMinX, float mapMaxX,
+			float mapMinY, float mapMaxY, boolean useBilinearFilter)
+	{
+		if (VERBOSE)
+			System.err.println("JoglPipeline.textureFillBackground()");
+
+		Jogl2es2Context jctx = (Jogl2es2Context) ctx;
+		GL2ES2 gl = jctx.gl2es2();
+
+		disableAttribFor2D(gl);
+
+		// Setup filter mode if needed 
+		if (useBilinearFilter)
+		{
+			// System.err.println("JoglPipeline - Raster  : use bilinear filter\n");
+			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+			if (DO_OUTPUT_ERRORS)
+				outputErrors(ctx);
+		}
+
+		//gl.glColor4f(1.0f, 1.0f, 1.0f, alpha);
+		//TODO: alpha value!! make sure blending on and use the alpha value in shader
+
+		gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
+		if (DO_OUTPUT_ERRORS)
+			outputErrors(ctx);
+
+		//gl.glOrtho(0.0, 1.0, 0.0, 1.0, 0.0, 1.0); //note [0,1] not the normal [-1,1]
+
+		// add a Z so we stay closer to textureFillRaster
+		float mapZ = 0f;
+
+		//NOTE!!!!!! very very well, tex*V is swapped max/min in order to upright the Y of the image!!
+		renderTexturedQuad(ctx, texMinU, texMaxU, texMaxV, texMinV, mapMinX, mapMaxX, mapMinY, mapMaxY, mapZ);
 	}
 
 	@Override
@@ -7759,121 +7848,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		//gl.glOrtho(0.0, 1.0, 0.0, 1.0, 0.0, 1.0); //note [0,1] not the normal [-1,1]
 
-		//NOTE .order(ByteOrder.nativeOrder())!!!
-		int vcount = 6;
-		FloatBuffer verts = ByteBuffer.allocateDirect(Float.SIZE / 8 * 3 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
-		FloatBuffer tcs = ByteBuffer.allocateDirect(Float.SIZE / 8 * 2 * vcount).order(ByteOrder.nativeOrder()).asFloatBuffer();
-
-		texMinV = 1 - texMinV;//Y-up has flipped them?
-		texMaxV = 1 - texMaxV;//Y-up has flipped them
-
-		//CCW windings for fun (cull face should make unnecessary
-		tcs.put(texMinU).put(texMinV);
-		verts.put(mapMinX).put(mapMinY).put(mapZ);
-		tcs.put(texMaxU).put(texMaxV);
-		verts.put(mapMaxX).put(mapMaxY).put(mapZ);
-		tcs.put(texMinU).put(texMaxV);
-		verts.put(mapMinX).put(mapMaxY).put(mapZ);
-
-		tcs.put(texMinU).put(texMinV);
-		verts.put(mapMinX).put(mapMinY).put(mapZ);
-		tcs.put(texMaxU).put(texMinV);
-		verts.put(mapMaxX).put(mapMinY).put(mapZ);
-		tcs.put(texMaxU).put(texMaxV);
-		verts.put(mapMaxX).put(mapMaxY).put(mapZ);
-
-		verts.position(0);
-		tcs.position(0);
-
-		int[] tmp = new int[2];
-		gl.glGenBuffers(2, tmp, 0);
-		int vertBufId = tmp[0];
-		int tcBufId = tmp[1];
-		if (DO_OUTPUT_ERRORS)
-			outputErrors(ctx);
-		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, vertBufId);
-		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (verts.remaining() * Float.SIZE / 8), verts, GL2ES2.GL_STREAM_DRAW);
-		if (DO_OUTPUT_ERRORS)
-			outputErrors(ctx);
-		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, tcBufId);
-		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, (tcs.remaining() * Float.SIZE / 8), tcs, GL2ES2.GL_STREAM_DRAW);
-		if (DO_OUTPUT_ERRORS)
-			outputErrors(ctx);
-
-		if (jctx.simpleTextureShaderProgramId == -1)
-			jctx.simpleTextureShaderProgramId = createSimpleTextureShaderProgram(ctx);
-
-		gl.glUseProgram(jctx.simpleTextureShaderProgramId);
-		if (DO_OUTPUT_ERRORS)
-			outputErrors(ctx);
-		jctx.prevShaderProgram = jctx.simpleTextureShaderProgramId;
-
-		boolean bindingRequired = true;
-
-		// always create a new one
-		int vaoId = -1;
-		if (jctx.gl2es3() != null)
-		{
-			if (vaoId == -1)
-			{
-				int[] tmp2 = new int[1];
-				jctx.gl2es3().glGenVertexArrays(1, tmp2, 0);
-				vaoId = tmp2[0];
-				if (DO_OUTPUT_ERRORS)
-					outputErrors(ctx);
-			}
-			else
-			{
-				bindingRequired = false;
-			}
-			jctx.gl2es3().glBindVertexArray(vaoId);
-			if (DO_OUTPUT_ERRORS)
-				outputErrors(ctx);
-		}
-
-		if (bindingRequired)
-		{
-			if (jctx.simpleTextureShaderProgramVertLoc != -1)
-			{
-				gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, vertBufId);
-				gl.glVertexAttribPointer(jctx.simpleTextureShaderProgramVertLoc, 3, GL2ES2.GL_FLOAT, false, 0, 0);
-				gl.glEnableVertexAttribArray(jctx.simpleTextureShaderProgramVertLoc);
-				if (DO_OUTPUT_ERRORS)
-					outputErrors(ctx);
-			}
-
-			if (jctx.simpleTextureShaderProgramTexCoordLoc != -1)
-			{
-				gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, tcBufId);
-				gl.glVertexAttribPointer(jctx.simpleTextureShaderProgramTexCoordLoc, 2, GL2ES2.GL_FLOAT, false, 0, 0);
-				gl.glEnableVertexAttribArray(jctx.simpleTextureShaderProgramTexCoordLoc);
-				if (DO_OUTPUT_ERRORS)
-					outputErrors(ctx);
-			}
-			if (DO_OUTPUT_ERRORS)
-				outputErrors(ctx);
-		}
-
-		if (jctx.simpleTextureShaderProgramBaseMapLoc != -1)
-		{
-			gl.glUniform1i(jctx.simpleTextureShaderProgramBaseMapLoc, 0);
-			if (DO_OUTPUT_ERRORS)
-				outputErrors(ctx);
-		}
-
-		gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, vcount);
-		if (DO_OUTPUT_ERRORS)
-			outputErrors(ctx);
-
-		// clean u as we have to recreate each pass
-		if (vaoId != -1)
-			jctx.gl2es3().glDeleteVertexArrays(1, new int[] { vaoId }, 0);
-
-		if (vertBufId != -1)
-			gl.glDeleteBuffers(1, new int[] { vertBufId }, 0);
-
-		if (tcBufId != -1)
-			gl.glDeleteBuffers(1, new int[] { tcBufId }, 0);
+		//NOTE!!!!!! very very well, tex*V is swapped max/min in order to upright the Y of the image!!
+		renderTexturedQuad(ctx, texMinU, texMaxU, texMaxV, texMinV, mapMinX, mapMaxX, mapMinY, mapMaxY, mapZ);
 
 	}
 
@@ -7885,15 +7861,16 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			System.err.println("JoglPipeline.executeRasterDepth()");
 		Jogl2es2Context jctx = (Jogl2es2Context) ctx;
 		GL2ES2 gl = jctx.gl2es2();
-		throw new UnsupportedOperationException("To get depth you should use a shader that return depth info for gl2es2 then read from color");
+		throw new UnsupportedOperationException(
+				"To get depth you should use a shader that return depth info for gl2es2 then read from color");
 		/*
 		gl.glRasterPos3f(posX, posY, posZ);
-
+		
 		int[] drawBuf = new int[1];
 		gl.glGetIntegerv(GL2.GL_DRAW_BUFFER, drawBuf, 0);
 		// disable draw buffer 
 		gl.glDrawBuffer(GL.GL_NONE);
-
+		
 		
 		 // raster position is upper left corner, default for Java3D
 		 // ImageComponent currently has the data reverse in Y
@@ -7932,7 +7909,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				rasterHeight = depthHeight;
 			}
 		}
-
+		
 		if (depthFormat == DepthComponentRetained.DEPTH_COMPONENT_TYPE_INT)
 		{
 			gl.glDrawPixels(rasterWidth, rasterHeight, GL2.GL_DEPTH_COMPONENT, GL.GL_UNSIGNED_INT, IntBuffer.wrap((int[]) depthData));
@@ -7941,14 +7918,14 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		{ // DepthComponentRetained.DEPTH_COMPONENT_TYPE_FLOAT 
 			gl.glDrawPixels(rasterWidth, rasterHeight, GL2.GL_DEPTH_COMPONENT, GL.GL_FLOAT, FloatBuffer.wrap((float[]) depthData));
 		}
-
+		
 		// re-enable draw buffer 
 		gl.glDrawBuffer(drawBuf[0]);
-
+		
 		gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, 0);
 		gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, 0);
 		gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, 0);
-*/
+		*/
 	}
 
 	/**
@@ -8682,7 +8659,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				break;
 			// GL_ABGR_EXT
 			case ImageComponentRetained.TYPE_BYTE_ABGR:
-				if (gl.isExtensionAvailable("GL_EXT_abgr"))
+				if (isExtensionAvailable.GL_EXT_abgr(gl))
 				{ // If false,
 					// should never
 					// come here!
