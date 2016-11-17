@@ -34,6 +34,7 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL2ES3;
 import com.jogamp.opengl.GLContext;
 
+
 public class Jogl2es2Context extends JoglContext
 {
 
@@ -41,7 +42,7 @@ public class Jogl2es2Context extends JoglContext
 	{
 		super(context);
 	}
-
+	
 	public GL2ES2 gl2es2()
 	{
 		return context.getGL().getGL2ES2();
@@ -62,19 +63,19 @@ public class Jogl2es2Context extends JoglContext
 		super.setShaderProgram(object);
 		shaderProgram = object;
 		shaderProgramId = object == null ? -1 : object.getValue();
-		programData = allProgramData.get(new Integer(shaderProgramId));
+		programData = allProgramData.get(shaderProgramId);
 		if (programData == null)
 		{
 			programData = new ProgramData();
-			allProgramData.put(new Integer(shaderProgramId), programData);
+			allProgramData.put(shaderProgramId, programData);
 		}
 
 	}
 
 	// all buffers created are recorded for each render pass, and for cleanup
-	public ArrayList<GeometryArrayRetained> geoToClearBuffers = new ArrayList<>();
+	public ArrayList<GeometryArrayRetained> geoToClearBuffers = new ArrayList<GeometryArrayRetained>();
 
-	public HashMap<Integer, GeometryData> allGeometryData = new HashMap<>();
+	public SparseArray<GeometryData> allGeometryData = new SparseArray<GeometryData>();
 
 	public static class GeometryData
 	{
@@ -91,8 +92,8 @@ public class Jogl2es2Context extends JoglContext
 		public int geoToCoordBufSize = -1;
 		public int geoToColorBuf = -1;
 		public int geoToNormalBuf = -1;
-		public HashMap<Integer, Integer> geoToTexCoordsBuf = new HashMap<>();
-		public HashMap<Integer, Integer> geoToVertAttribBuf = new HashMap<>();
+		public SparseArray<Integer> geoToTexCoordsBuf = new SparseArray<Integer>();
+		public SparseArray<Integer> geoToVertAttribBuf = new SparseArray<Integer>();
 
 		//Every thing below relates to interleaved data
 		public int coordBufId = -1; // if separate
@@ -118,11 +119,11 @@ public class Jogl2es2Context extends JoglContext
 
 	}
 
-	public HashMap<Integer, ProgramData> allProgramData = new HashMap<>();
+	public SparseArray<ProgramData> allProgramData = new SparseArray<ProgramData>();
 
 	public static class ProgramData
 	{
-		public HashMap<String, Integer> progToGenVertAttNameToGenVertAttIndex = new HashMap<>();
+		public HashMap<String, Integer> progToGenVertAttNameToGenVertAttIndex = new HashMap<String, Integer>();
 		public LocationData programToLocationData = null;// null to indicate need to load
 		public ByteBuffer programToUBOBB = null;
 		public int programToUBOBuf = -1;
@@ -153,7 +154,6 @@ public class Jogl2es2Context extends JoglContext
 		public int alphaTestFunction = RenderingAttributes.ALWAYS;
 		public float alphaTestValue = 0;
 		public int ignoreVertexColors; //-1 is not set 1,0 bool
-
 	}
 
 	public RenderingData renderingData = new RenderingData();
@@ -207,7 +207,7 @@ public class Jogl2es2Context extends JoglContext
 		public int glNormal = -1;
 
 		public int[] glMultiTexCoord = new int[16];
-		public HashMap<Integer, Integer> genAttIndexToLoc = new HashMap<>();
+		public SparseArray<Integer> genAttIndexToLoc = new SparseArray<Integer>();
 
 	}
 
@@ -348,7 +348,7 @@ public class Jogl2es2Context extends JoglContext
 		perFrameStats = new Jogl2es2PerFrameStats();
 		perFrameStats.endOfPrevFrameTime = System.nanoTime();
 	}
-
+	
 	// texture and raster fill variables
 	
 	// raster vao and buf are not in the by geom bucket because I don't get given geom
@@ -359,7 +359,6 @@ public class Jogl2es2Context extends JoglContext
 	public int simpleTextureShaderProgramTexCoordLoc = -1;
 	public int simpleTextureShaderProgramBaseMapLoc = -1;
 	
-
 	// just a singleton of the handy matrix/array operations
 	public Jogl2es2MatrixUtil matrixUtil = new Jogl2es2MatrixUtil();
 
@@ -515,7 +514,6 @@ public class Jogl2es2Context extends JoglContext
 
 	public static class glLightSourceLocs
 	{
-		public int enabled = -1;
 		public int position = -1;
 		public int diffuse = -1;
 		public int specular = -1;
@@ -528,9 +526,8 @@ public class Jogl2es2Context extends JoglContext
 
 		public boolean present()
 		{
-			return enabled != -1 || position != -1 || diffuse != -1 || specular != -1 || constantAttenuation != -1
-					|| linearAttenuation != -1 || quadraticAttenuation != -1 || spotCutoff != -1 || spotExponent != -1
-					|| spotDirection != -1;
+			return position != -1 || diffuse != -1 || specular != -1 || constantAttenuation != -1 || linearAttenuation != -1
+					|| quadraticAttenuation != -1 || spotCutoff != -1 || spotExponent != -1 || spotDirection != -1;
 		}
 	}
 

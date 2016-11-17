@@ -335,7 +335,6 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 		throw new UnsupportedOperationException("accum not supported in the GL2ES2 pipeline.\n" + VALID_FORMAT_MESSAGE);
 	}
 
-	// The following three methods are used in multi-pass case
 
 	// used for display Lists
 	@Override
@@ -373,5 +372,4 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 				+ "System.setProperty(\"j3d.displaylist\", \"false\"); to avoid this issue. \n"
 				+ "Please note the recommended solution is to use NIO buffers. \n" + VALID_FORMAT_MESSAGE);
 	}
-
 }

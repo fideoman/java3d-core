@@ -1447,19 +1447,18 @@ ArrayList<TextureRetained> textureIDResourceTable = new ArrayList<TextureRetaine
       } catch (RuntimeException ex) {
             ex.printStackTrace();
 
-	    if (canvas != null) {
+	    			RenderingError err = new RenderingError(RenderingError.UNEXPECTED_RENDERING_ERROR, J3dI18N.getString("Renderer8"));
+			err.setCanvas3D(canvas);
+if (canvas != null) {
 		// drawingSurfaceObject will safely ignore
 		// this request if this is not lock before
 		canvas.drawingSurfaceObject.unLock();
-	    }
+	    				// Issue 260 : indicate fatal error and notify error listeners
+				canvas.setFatalError();
+				err.setGraphicsDevice(canvas.graphicsConfiguration.getDevice());
+}
 
-            // Issue 260 : indicate fatal error and notify error listeners
-            canvas.setFatalError();
-            RenderingError err =
-                    new RenderingError(RenderingError.UNEXPECTED_RENDERING_ERROR,
-                        J3dI18N.getString("Renderer8"));
-            err.setCanvas3D(canvas);
-            err.setGraphicsDevice(canvas.graphicsConfiguration.getDevice());
+            
             notifyErrorListeners(err);
       }
     }

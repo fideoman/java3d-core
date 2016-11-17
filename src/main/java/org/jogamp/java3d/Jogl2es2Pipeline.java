@@ -93,7 +93,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.Threading;
 
 /**
- * Concrete implementation of Pipeline class for the JOGL rendering pipeline.
+ * Concrete implementation of Pipeline class for the GL2ES2 rendering pipeline.
  */
 class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 {
@@ -116,6 +116,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	private static final boolean MINIMISE_NATIVE_SHADER = true;
 	private static final boolean MINIMISE_NATIVE_CALLS_OTHER = true;
 
+	// This MUST be true on android fullscreen 
+	// setPostiion on a GLWindow can lock-up if true
 	private static final boolean NEVER_RELEASE_CONTEXT = false;
 
 	/**
@@ -137,19 +139,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		// Java3D maintains strict control over which threads perform OpenGL work
 		Threading.disableSingleThreading();
 
-		// profile = GLProfile.get(GLProfile.GLES2); // Profile GLES2 is not available on null, but: [GLProfile[GL3bc/GL4bc.hw],...
 		profile = GLProfile.get(GLProfile.GL2ES2);
 		// profile = GLProfile.getMaxProgrammable(true);
 
 	}
 
-	// ---------------------------------------------------------------------
-
-	//
-	// GeometryArrayRetained methods
-	//
-
-	// FIXME: big ugly hack for buffer clearing on removal of a geometry
+	// FIXME: ugly hack for buffer clearing on removal of a geometry
 	public void registerClearBuffers(Context ctx, GeometryArrayRetained geo)
 	{
 		Jogl2es2Context joglesctx = (Jogl2es2Context) ctx;
@@ -177,6 +172,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					if (gd != null)
 					{
 						if (gd.geoToIndBuf != -1)
+
 							gl.glDeleteBuffers(1, new int[] { gd.geoToIndBuf }, 0);
 						if (gd.geoToCoordBuf != -1)
 							gl.glDeleteBuffers(1, new int[] { gd.geoToCoordBuf }, 0);
@@ -191,22 +187,25 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							gl.glDeleteBuffers(bufIds.length, bufIds, 0);
 						}
 
-						HashMap<Integer, Integer> tcBufIds = gd.geoToTexCoordsBuf;
+						SparseArray<Integer> tcBufIds = gd.geoToTexCoordsBuf;
 						if (tcBufIds != null)
 						{
-							for (Integer tcBufId : tcBufIds.keySet())
+							for (int i = 0; i < tcBufIds.size(); i++)
 							{
+								Integer tcBufId = tcBufIds.get(tcBufIds.keyAt(i));
+
 								if (tcBufId != null)
 									gl.glDeleteBuffers(1, new int[] { tcBufId.intValue() }, 0);
 							}
 							tcBufIds.clear();
 						}
 
-						HashMap<Integer, Integer> vaBufIds = gd.geoToVertAttribBuf;
+						SparseArray<Integer> vaBufIds = gd.geoToVertAttribBuf;
 						if (vaBufIds != null)
 						{
-							for (Integer vaBufId : vaBufIds.keySet())
+							for (int i = 0; i < vaBufIds.size(); i++)
 							{
+								Integer vaBufId = vaBufIds.get(vaBufIds.keyAt(i));
 								if (vaBufId != null)
 									gl.glDeleteBuffers(1, new int[] { vaBufId.intValue() }, 0);
 							}
@@ -340,7 +339,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			{
 				if (EXTRA_DEBUGGING)
 				{
-					System.err.println("  Number of tex coord sets: " + texCoordSetCount);
+					System.err.println("Number of tex coord sets: " + texCoordSetCount);
 				}
 				if ((vformat & GeometryArray.TEXTURE_COORDINATE_2) != 0)
 				{
@@ -435,12 +434,13 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			GeometryData gd = loadAllBuffers(ctx, gl, geo, ignoreVertexColors, vcount, vformat, vformat, verts, startVertex, clrs,
 					startClrs);
 
-			// can it change ever? (GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of this feature)
+			// GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of changeability
 			boolean morphable = geo.source.getCapability(GeometryArray.ALLOW_REF_DATA_WRITE)
 					|| geo.source.getCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
 
 			// not required second time around for VAO (except morphable coords)
 			boolean bindingRequired = true;
+			// Note although we ask for ES2 we can get ES3, which demands a VAO or nothing renders
 			if (ctx.gl2es3() != null)
 			{
 				if (gd.vaoId == -1)
@@ -460,31 +460,28 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					outputErrors(ctx);
 			}
 
-			// refill the buffers in case of writeable data
+			// refill the buffers in case of writeable data (morphable)
 			if (locs.glVertex != -1)
 			{
-
 				if (gd.geoToCoordBuf == -1)
 				{
 					new Throwable("Buffer load issue!").printStackTrace();
 				}
 				else
 				{
-
-					// a good cDirty
+					// rather than the morphable system above we should be able to use cDirty, but it appears to be wrong
 					// if ((cDirty & GeometryArrayRetained.COORDINATE_CHANGED) != 0)
 					if (morphable)
 					{
-
 						verts.position(startVertex);
-						// Sometime the FloatBuffer is swapped out for bigger or smaller! or is that ok?
+						// Sometime the FloatBuffer is swapped out for bigger or smaller
 						if (gd.geoToCoordBufSize != verts.remaining())
 						{
 							System.err.println("Morphable buffer changed " + gd.geoToCoordBufSize + " != " + verts.remaining()
 									+ " un indexed ((GeometryArray) geo.source) " + ((GeometryArray) geo.source).getName() + " "
 									+ geo.source + ", this is not nessasarily a problem");
 
-							int prevBufId1 = gd.geoToCoordBuf1;// record to delete after re-bind
+							int prevBufId1 = gd.geoToCoordBuf1;// record these in order to delete after re-bind
 							int prevBufId2 = gd.geoToCoordBuf2;
 
 							int[] tmp = new int[2];
@@ -550,9 +547,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 								ctx.perFrameStats.glBufferSubData++;
 						}
 					}
-
 				}
-
 			}
 			else
 			{
@@ -572,7 +567,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				}
 			}
 
-			// notice morphables must always rebind each frame as coord buffers are swapped
+			// notice morphables must always rebind each frame as coord buffers are swapped, so the vao 
+			// (if it is bound points to the previous buffer)
 			if (bindingRequired || morphable)
 			{
 				// always do coords 
@@ -592,7 +588,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			if (bindingRequired)
 			{
-
 				if (((vformat & GeometryArray.COLOR) != 0) && locs.glColor != -1 && !ignoreVertexColors)
 				{
 					if (gd.geoToColorBuf == -1)
@@ -616,7 +611,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				}
 				else if (locs.glColor != -1)
 				{
-					// ignoreVertexcolors will have been set in FFP now as the glColors is unbound
+					// ignoreVertexcolors will have been set in FFP, now as the glColors is unbound
 					gl.glDisableVertexAttribArray(locs.glColor);
 					if (OUTPUT_PER_FRAME_STATS)
 						ctx.perFrameStats.glDisableVertexAttribArray++;
@@ -653,7 +648,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 				if ((vformat & GeometryArray.VERTEX_ATTRIBUTES) != 0)
 				{
-
 					int vAttrOffset = startVertex + vAttrOff;
 					for (int index = 0; index < vertexAttrCount; index++)
 					{
@@ -711,9 +705,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			{
 				int primType = 0;
 
-				//FIXME: GL_LINE and GL_LINE_STRIP simply go from one vertex to the next drawing a line between
-				// each pair, what I want is a line between each set of 3 (that are not jumpers)
-
+				// FIXME: GL_LINE and GL_LINE_STRIP simply go from one vertex to the next drawing a line between
+				// each pair, what I want is a line between each set of 3 (that are not degenerate)
 				if (ctx.polygonMode == PolygonAttributes.POLYGON_LINE)
 					geo_type = GeometryRetained.GEO_TYPE_LINE_STRIP_SET;
 
@@ -747,7 +740,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			else
 			{
 				//need to override if polygonAttributes says so
-
 				if (ctx.polygonMode == PolygonAttributes.POLYGON_LINE)
 					geo_type = GeometryRetained.GEO_TYPE_LINE_SET;
 				else if (ctx.polygonMode == PolygonAttributes.POLYGON_POINT)
@@ -756,7 +748,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				switch (geo_type)
 				{
 				case GeometryRetained.GEO_TYPE_QUAD_SET:
-					throw new UnsupportedOperationException("QuadArray.\n" + VALID_FORMAT_MESSAGE);
+					System.err.println("QuadArray.\n" + VALID_FORMAT_MESSAGE);
 				case GeometryRetained.GEO_TYPE_TRI_SET:
 					gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, vcount);
 					break;
@@ -837,9 +829,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 	}
 
-	// used by GeometryArray by Reference with NIO buffer
-	//  non indexed
-
+	// used by GeometryArray by Reference with NIO buffer non indexed
 	@Override
 	void executeVABuffer(Context ctx, GeometryArrayRetained geo, int geo_type, boolean isNonUniformScale, boolean ignoreVertexColors,
 			int vcount, int vformat, int vdefined, int initialCoordIndex, Buffer vcoords, int initialColorIndex, Buffer cdataBuffer,
@@ -898,7 +888,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 		else if (byteColorsDefined)
 		{
-			// FIXME: doubles not supported for now
+			// FIXME: bytes not supported for now
 			throw new UnsupportedOperationException("byteColorsDefined.\n" + VALID_FORMAT_MESSAGE);
 			// if (cbdata != null)
 			// bclrs = getColorArrayBuffer(cbdata);
@@ -929,8 +919,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				cdirty, sarray, strip_len, start_array);
 	}
 
-	// used by GeometryArray by Reference with java arrays
-	//  non indexed
+	// used by GeometryArray by Reference with java arrays non indexed
 	@Override
 	void executeVA(Context ctx, GeometryArrayRetained geo, int geo_type, boolean isNonUniformScale, boolean ignoreVertexColors, int vcount,
 			int vformat, int vdefined, int initialCoordIndex, float[] vfcoords, double[] vdcoords, int initialColorIndex, float[] cfdata,
@@ -1046,12 +1035,13 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			boolean vattrDefined = ((vdefined & GeometryArrayRetained.VATTR_FLOAT) != 0);
 			boolean textureDefined = ((vdefined & GeometryArrayRetained.TEXCOORD_FLOAT) != 0);
 
-			// can it change ever? (GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of this feature)
+			// GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of changeability
 			boolean morphable = geo.source.getCapability(GeometryArray.ALLOW_REF_DATA_WRITE)
 					|| geo.source.getCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
 
 			// not required second time around for VAO (except morphable coords)
 			boolean bindingRequired = true;
+			// Note although we ask for ES2 we can get ES3, which demands a VAO or nothing renders
 			if (ctx.gl2es3() != null)
 			{
 				if (gd.vaoId == -1)
@@ -1076,28 +1066,26 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			{
 				if (floatCoordDefined)
 				{
-
 					if (gd.geoToCoordBuf == -1)
 					{
 						new Throwable("Buffer load issue!").printStackTrace();
 					}
 					else
 					{
-
-						// a good cDirty
+						// rather than the morphable system above we should be able to use cDirty, but it appears to be wrong
 						// if ((cDirty & GeometryArrayRetained.COORDINATE_CHANGED) != 0)
 						if (morphable)
 						{
 							int coordoff = 3 * initialCoordIndex;
 							fverts.position(coordoff);
-							// Sometime the FloatBuffer is swapped out for bigger or smaller! or is that ok?
+							// Sometime the FloatBuffer is swapped out for bigger or smaller 
 							if (gd.geoToCoordBufSize != fverts.remaining())
 							{
 								System.err.println("Morphable buffer changed " + gd.geoToCoordBufSize + " != " + fverts.remaining()
 										+ " un indexed ((GeometryArray) geo.source) " + ((GeometryArray) geo.source).getName() + " "
 										+ geo.source + ", this is not nessasarily a problem");
 
-								int prevBufId1 = gd.geoToCoordBuf1;// record to delete after re-bind
+								int prevBufId1 = gd.geoToCoordBuf1;// record these in order to delete after re-bind
 								int prevBufId2 = gd.geoToCoordBuf2;
 
 								int[] tmp = new int[2];
@@ -1220,7 +1208,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						{
 							FloatBuffer vertexAttrs = vertexAttrBufs[index];
 							vertexAttrs.position(0);
-							HashMap<Integer, Integer> bufIds = gd.geoToVertAttribBuf;
+							SparseArray<Integer> bufIds = gd.geoToVertAttribBuf;
 							Integer bufId = bufIds.get(index);
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, bufId.intValue());
 							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, vertexAttrs.remaining() * Float.SIZE / 8, vertexAttrs);
@@ -1242,7 +1230,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						{
 							FloatBuffer buf = (FloatBuffer) texCoords[texSet];
 							buf.position(0);
-							HashMap<Integer, Integer> bufIds = gd.geoToTexCoordsBuf;
+							SparseArray<Integer> bufIds = gd.geoToTexCoordsBuf;
 							Integer bufId = bufIds.get(texUnit);
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, bufId.intValue());
 							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, buf.remaining() * Float.SIZE / 8, buf);
@@ -1356,7 +1344,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						Integer attribLoc = locs.genAttIndexToLoc.get(index);
 						if (attribLoc != null && attribLoc.intValue() != -1)
 						{
-							HashMap<Integer, Integer> bufIds = gd.geoToVertAttribBuf;
+							SparseArray<Integer> bufIds = gd.geoToVertAttribBuf;
 							if (bufIds == null)
 							{
 								new Throwable("Buffer load issue!").printStackTrace();
@@ -1397,7 +1385,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							FloatBuffer buf = (FloatBuffer) texCoords[texSet];
 							buf.position(0);
 
-							HashMap<Integer, Integer> bufIds = gd.geoToTexCoordsBuf;
+							SparseArray<Integer> bufIds = gd.geoToTexCoordsBuf;
 							if (bufIds == null)
 							{
 								new Throwable("Buffer load issue!").printStackTrace();
@@ -1431,9 +1419,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			{
 				int primType = 0;
 
-				//FIXME: GL_LINE and GL_LINE_STRIP simply go from one vertex to the next drawing a line between
-				// each pair, what I want is a line between each set of 3 (that are not jumpers)
-
+				// FIXME: GL_LINE and GL_LINE_STRIP simply go from one vertex to the next drawing a line between
+				// each pair, what I want is a line between each set of 3 (that are not degenerate)
 				if (ctx.polygonMode == PolygonAttributes.POLYGON_LINE)
 					geo_type = GeometryRetained.GEO_TYPE_LINE_STRIP_SET;
 
@@ -1467,7 +1454,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			else
 			{
 				// need to override if polygonAttributes says so
-
 				if (ctx.polygonMode == PolygonAttributes.POLYGON_LINE)
 					geo_type = GeometryRetained.GEO_TYPE_LINE_SET;
 				else if (ctx.polygonMode == PolygonAttributes.POLYGON_POINT)
@@ -1476,7 +1462,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				switch (geo_type)
 				{
 				case GeometryRetained.GEO_TYPE_QUAD_SET:
-					throw new UnsupportedOperationException("QuadArray.\n" + VALID_FORMAT_MESSAGE);
+					System.err.println("QuadArray.\n" + VALID_FORMAT_MESSAGE);
 				case GeometryRetained.GEO_TYPE_TRI_SET:
 					gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, vertexCount);
 					break;
@@ -1493,44 +1479,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				if (OUTPUT_PER_FRAME_STATS)
 					ctx.perFrameStats.glDrawArrays++;
 			}
-
-			/*		unbound in setRenderMode now	
-			if (gl.isGL2ES3())
-			{
-				GL2ES3 gl2es3 = (GL2ES3) gl;
-				gl2es3.glBindVertexArray(0);
-				if (DO_OUTPUT_ERRORS)
-					outputErrors(ctx);
-			}*/
-
-			//TODO: do I need to unbind these things, it seems fine not to
-			/*
-			if (vattrDefined)
-			{
-				for (int i = 0; i < vertexAttrCount; i++)
-				{
-					Integer attribLoc = locs.genAttIndexToLoc.get(i);
-					if (attribLoc != null && attribLoc.intValue() != -1)
-					{
-						gl.glDisableVertexAttribArray(attribLoc);
-						if (OUTPUT_PER_FRAME_STATS)
-							ctx.perFrameStats.glDisableVertexAttribArray++;
-					}
-				}
-			}
-			
-			if (textureDefined)
-			{
-				for (int i = 0; i < locs.glMultiTexCoord.length; i++)
-				{
-					if (locs.glMultiTexCoord[i] != -1)
-					{
-						gl.glDisableVertexAttribArray(locs.glMultiTexCoord[i]);
-						if (OUTPUT_PER_FRAME_STATS)
-							ctx.perFrameStats.glDisableVertexAttribArray++;
-					}
-				}
-			}*/
 		}
 		else
 		{
@@ -1649,7 +1597,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					coordoff += 4;
 				}
 				else
-				{ // Handle the case of executeInterleaved 3f
+				{
+					// Handle the case of executeInterleaved 3f
 					stride += 3;
 					normoff += 3;
 					coordoff += 3;
@@ -1744,12 +1693,13 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			GeometryData gd = loadAllBuffers(ctx, gl, geo, ignoreVertexColors, vcount, vformat, vformat, verts, 0, clrs, 0);
 
-			// can it change ever? (GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of this feature)
+			// GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of changeability
 			boolean morphable = geo.source.getCapability(GeometryArray.ALLOW_REF_DATA_WRITE)
 					|| geo.source.getCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
 
 			// not required second time around for VAO (except morphable coords)
 			boolean bindingRequired = true;
+			// Note although we ask for ES2 we can get ES3, which demands a VAO or nothing renders
 			if (ctx.gl2es3() != null)
 			{
 				if (gd.vaoId == -1)
@@ -1778,21 +1728,19 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				}
 				else
 				{
-
-					// a good cDirty
 					// if ((cDirty & GeometryArrayRetained.COORDINATE_CHANGED) != 0)
 					if (morphable)
 					{
 
 						verts.position(0);
-						// Sometime the FloatBuffer is swapped out for bigger or smaller! or is that ok?
+						// Sometime the FloatBuffer is swapped out for bigger or smaller 
 						if (gd.geoToCoordBufSize != verts.remaining())
 						{
 							System.err.println("Morphable buffer changed " + gd.geoToCoordBufSize + " != " + verts.remaining()
 									+ " un indexed ((GeometryArray) geo.source) " + ((GeometryArray) geo.source).getName() + " "
 									+ geo.source + ", this is not nessasarily a problem");
 
-							int prevBufId1 = gd.geoToCoordBuf1;// record to delete after re-bind
+							int prevBufId1 = gd.geoToCoordBuf1;// record these in order to delete after re-bind
 							int prevBufId2 = gd.geoToCoordBuf2;
 
 							int[] tmp = new int[2];
@@ -1899,7 +1847,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			if (bindingRequired)
 			{
-
 				if (((vformat & GeometryArray.COLOR) != 0) && locs.glColor != -1 && !ignoreVertexColors)
 				{
 					if (gd.geoToColorBuf == -1)
@@ -2381,13 +2328,13 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			boolean vattrDefined = ((vdefined & GeometryArrayRetained.VATTR_FLOAT) != 0);
 			boolean textureDefined = ((vdefined & GeometryArrayRetained.TEXCOORD_FLOAT) != 0);
 
-			//can it change ever? (GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of this feature)			 
+			// GeometryArray.ALLOW_REF_DATA_WRITE is just my indicator of changeability
 			boolean morphable = geo.source.getCapability(GeometryArray.ALLOW_REF_DATA_WRITE)
 					|| geo.source.getCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
 
-			// not required second time around for VAO
-			// however as morphables coords are swapped they always get rebound each draw
+			// not required second time around for VAO (except morphable coords)
 			boolean bindingRequired = true;
+			// Note although we ask for ES2 we can get ES3, which demands a VAO or nothing renders
 			if (ctx.gl2es3() != null)
 			{
 				if (gd.vaoId == -1)
@@ -2412,8 +2359,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			{
 				if (floatCoordDefined)
 				{
-					// Building of buffers etc and index buffers should really take place not on the j3d thread if possible
-
+					// TODO: Building of buffers etc and index buffers should really take place not on the j3d thread if possible
 					if (gd.geoToCoordBuf == -1)
 					{
 						new Throwable("Buffer load issue!").printStackTrace();
@@ -2424,14 +2370,14 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						{
 							fverts.position(0);
 
-							// Sometime the FloatBuffer is swapped out for bigger or smaller! or is that ok?
+							// Sometime the FloatBuffer is swapped out for bigger or smaller 
 							if (gd.geoToCoordBufSize != fverts.remaining())
 							{
 								System.err.println("Morphable buffer changed " + gd.geoToCoordBufSize + " != " + fverts.remaining()
 										+ " ((GeometryArray) geo.source) " + ((GeometryArray) geo.source).getName() + " " + geo.source);
 
-								int prevBufId1 = gd.geoToCoordBuf1;// keep to delete below
-								int prevBufId2 = gd.geoToCoordBuf2;// keep to delete below
+								int prevBufId1 = gd.geoToCoordBuf1;// record these in order to delete below
+								int prevBufId2 = gd.geoToCoordBuf2;
 
 								int[] tmp = new int[2];
 								gl.glGenBuffers(2, tmp, 0);
@@ -2554,7 +2500,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						{
 							FloatBuffer vertexAttrs = vertexAttrBufs[index];
 							vertexAttrs.position(0);
-							HashMap<Integer, Integer> bufIds = gd.geoToVertAttribBuf;
+							SparseArray<Integer> bufIds = gd.geoToVertAttribBuf;
 							Integer bufId = bufIds.get(index);
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, bufId.intValue());
 							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, vertexAttrs.remaining() * Float.SIZE / 8, vertexAttrs);
@@ -2576,7 +2522,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						{
 							FloatBuffer buf = (FloatBuffer) texCoords[texSet];
 							buf.position(0);
-							HashMap<Integer, Integer> bufIds = gd.geoToTexCoordsBuf;
+							SparseArray<Integer> bufIds = gd.geoToTexCoordsBuf;
 							Integer bufId = bufIds.get(texUnit);
 							gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, bufId.intValue());
 							gl.glBufferSubData(GL2ES2.GL_ARRAY_BUFFER, 0, buf.remaining() * Float.SIZE / 8, buf);
@@ -2688,7 +2634,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						Integer attribLoc = locs.genAttIndexToLoc.get(index);
 						if (attribLoc != null && attribLoc.intValue() != -1)
 						{
-							HashMap<Integer, Integer> bufIds = gd.geoToVertAttribBuf;
+							SparseArray<Integer> bufIds = gd.geoToVertAttribBuf;
 							if (bufIds == null)
 							{
 								new Throwable("Buffer load issue!").printStackTrace();
@@ -2730,7 +2676,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							FloatBuffer buf = (FloatBuffer) texCoords[texSet];
 							buf.position(0);
 
-							HashMap<Integer, Integer> bufIds = gd.geoToTexCoordsBuf;
+							SparseArray<Integer> bufIds = gd.geoToTexCoordsBuf;
 							if (bufIds == null)
 							{
 								new Throwable("Buffer load issue!").printStackTrace();
@@ -2753,7 +2699,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 							}
 						}
 					}
-
 				}
 
 				// general catch all
@@ -2838,12 +2783,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					int count = sarray[i];
 					int indBufId = stripInd[i];
 
-					//type Specifies the type of the values in indices. Must be
+					// type Specifies the type of the values in indices. Must be
 					// GL_UNSIGNED_BYTE or GL_UNSIGNED_SHORT.    
-					// Apparently ES3 has included this guy now, so I'm a bit commited to it
-					//https://www.khronos.org/opengles/sdk/docs/man/xhtml/glDrawElements.xml
-					//This restriction is relaxed when GL_OES_element_index_uint is supported. 
-					//GL_UNSIGNED_INT
+					// Apparently ES3 has included this GL_UNSIGNED_INT
+					// https://www.khronos.org/opengles/sdk/docs/man/xhtml/glDrawElements.xml
+					// This restriction is relaxed when GL_OES_element_index_uint is supported. 
+					// GL_UNSIGNED_INT
 
 					gl.glBindBuffer(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, indBufId);
 					gl.glDrawElements(primType, count, GL2ES2.GL_UNSIGNED_SHORT, 0);
@@ -2854,7 +2799,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						ctx.perFrameStats.glDrawStripElementsStrips++;
 
 				}
-				// gl.glBindBuffer(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, 0);
 
 				if (OUTPUT_PER_FRAME_STATS)
 					ctx.perFrameStats.glDrawStripElements++;
@@ -2933,55 +2877,14 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					ctx.perFrameStats.glDrawElements++;
 
 			}
-
-			/*		unbound in setRenderMode now	
-			if (gl.isGL2ES3())
-			{
-				GL2ES3 gl2es3 = (GL2ES3) gl;
-				gl2es3.glBindVertexArray(0);
-				if (DO_OUTPUT_ERRORS)
-					outputErrors(ctx);
-			}*/
-
-			//TODO: are these unbinds needed, seems fine without them
-			/*
-			if (vattrDefined)
-			{
-				for (int i = 0; i < vertexAttrCount; i++)
-				{
-					Integer attribLoc = locs.genAttIndexToLoc.get(i);
-					if (attribLoc != null && attribLoc.intValue() != -1)
-					{
-						gl.glDisableVertexAttribArray(attribLoc);
-						if (OUTPUT_PER_FRAME_STATS)
-							ctx.perFrameStats.glDisableVertexAttribArray++;
-					}
-				}
-			}
-			
-			if (textureDefined)
-			{
-				for (int i = 0; i < locs.glMultiTexCoord.length; i++)
-				{
-					if (locs.glMultiTexCoord[i] != -1)
-					{
-						gl.glDisableVertexAttribArray(locs.glMultiTexCoord[i]);
-						if (OUTPUT_PER_FRAME_STATS)
-							ctx.perFrameStats.glDisableVertexAttribArray++;
-					}
-				}
-			}*/
-
 		}
 		else
-
 		{
 			if (!NO_PROGRAM_WARNING_GIVEN)
 				System.err.println("Execute called with no shader Program in use!");
 			NO_PROGRAM_WARNING_GIVEN = true;
 		}
 		if (DO_OUTPUT_ERRORS)
-
 			outputErrors(ctx);
 	}
 
@@ -3007,8 +2910,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		if (OUTPUT_PER_FRAME_STATS)
 			ctx.perFrameStats.setFFPAttributes++;
-
-		// removed if (ATTEMPT_UBO && gl.isGL2ES3())...
 
 		// if shader hasn't changed location of uniform I don't need to reset these (they are cleared to -1 at the start of each swap)
 		if (locs.glProjectionMatrix != -1)
@@ -3382,8 +3283,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			}
 		}
 
-		// NOTE water app shows multiple light calculations
-
 		// record for the next loop through FFP
 		ctx.prevShaderProgram = shaderProgramId;
 		if (DO_OUTPUT_ERRORS)
@@ -3400,7 +3299,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	private static void loadLocs(Jogl2es2Context ctx, GL2ES2 gl)
 	{
 		ProgramData pd = ctx.programData;
-
 		if (pd.programToLocationData == null)
 		{
 			LocationData locs = new LocationData();
@@ -3412,8 +3310,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			// shader program can be disabled, but locs still called
 			if (shaderProgramId != -1)
 			{
-				// Removed if(ATTEMPT_UBO && gl.isGL2ES3())...
-
 				locs.glProjectionMatrix = gl.glGetUniformLocation(shaderProgramId, "glProjectionMatrix");
 				locs.glProjectionMatrixInverse = gl.glGetUniformLocation(shaderProgramId, "glProjectionMatrixInverse");
 				locs.glModelMatrix = gl.glGetUniformLocation(shaderProgramId, "glModelMatrix");
@@ -3446,8 +3342,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 				locs.numberOfLights = gl.glGetUniformLocation(shaderProgramId, "numberOfLights");
 
-				//lights, notice the vertex attribute is made of a string concat
-				// possibly in es you can't use an array of struct to get locs?
+				// lights, notice the vertex attribute is made of a string concat
 				for (int i = 0; i < locs.glLightSource.length; i++)
 				{
 					locs.glLightSource[i] = new glLightSourceLocs();
@@ -3495,7 +3390,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			pd.programToLocationData = locs;
 		}
-
 	}
 
 	private static GeometryData loadAllBuffers(Jogl2es2Context ctx, GL2ES2 gl, GeometryArrayRetained geo, boolean ignoreVertexColors,
@@ -3556,15 +3450,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 			if (OUTPUT_PER_FRAME_STATS)
 				ctx.perFrameStats.glBufferData++;
-
 		}
 
 		if (!ignoreVertexColors)
 		{
-
 			if (gd.geoToColorBuf == -1)
 			{
-
 				if (fclrs != null)
 				{
 					if (fclrs != fverts)
@@ -3587,7 +3478,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					if (OUTPUT_PER_FRAME_STATS)
 						ctx.perFrameStats.glBufferData++;
 				}
-
 			}
 		}
 
@@ -3719,10 +3609,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				FloatBuffer vertexAttrs = vertexAttrBufs[index];
 				vertexAttrs.position(0);
 
-				HashMap<Integer, Integer> bufIds = gd.geoToVertAttribBuf;
+				SparseArray<Integer> bufIds = gd.geoToVertAttribBuf;
 				if (bufIds == null)
 				{
-					bufIds = new HashMap<Integer, Integer>();
+					bufIds = new SparseArray<Integer>();
 					gd.geoToVertAttribBuf = bufIds;
 				}
 
@@ -3759,10 +3649,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					FloatBuffer buf = (FloatBuffer) texCoords[texSet];
 					buf.position(0);
 
-					HashMap<Integer, Integer> bufIds = gd.geoToTexCoordsBuf;
+					SparseArray<Integer> bufIds = gd.geoToTexCoordsBuf;
 					if (bufIds == null)
 					{
-						bufIds = new HashMap<Integer, Integer>();
+						bufIds = new SparseArray<Integer>();
 						gd.geoToTexCoordsBuf = bufIds;
 					}
 
@@ -3800,8 +3690,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		// System.err.println("JoglPipeline.setVertexFormat()");
 	}
 
-	// called by the 2 executes above
-
+	// ---------------------------------------------------------------------
 	// Native method for readRaster
 	@Override
 	void readRaster(Context ctx, int type, int xSrcOffset, int ySrcOffset, int width, int height, int hCanvas, int imageDataType,
@@ -4423,8 +4312,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (OUTPUT_PER_FRAME_STATS)
 			((Jogl2es2Context) ctx).perFrameStats.bindGLSLVertexAttrName++;
 
-		//GL2ES2 gl = context(ctx).getGL().getGL2ES2();
-		//gl.glBindAttribLocation(unbox(shaderProgramId), attrIndex + VirtualUniverse.mc.glslVertexAttrOffset, attrName);
+		// GL2ES2 gl = context(ctx).getGL().getGL2ES2();
+		// gl.glBindAttribLocation(unbox(shaderProgramId), attrIndex + VirtualUniverse.mc.glslVertexAttrOffset, attrName);
 
 		// record this for later, we'll get real locations in the locationData setup
 		int progId = unbox(shaderProgramId);
@@ -4715,12 +4604,11 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	// ---------------------------------------------------------------------
 
+	private static final Vector4f black = new Vector4f();
+
 	//
 	// DirectionalLightRetained methods
 	//
-
-	private static final Vector4f black = new Vector4f();
-
 	@Override
 	void updateDirectionalLight(Context ctx, int lightSlot, float red, float green, float blue, float dirx, float diry, float dirz)
 	{
@@ -4731,33 +4619,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (OUTPUT_PER_FRAME_STATS)
 			((Jogl2es2Context) ctx).perFrameStats.updateDirectionalLight++;
 
-		/*	GL2 gl = context(ctx).getGL().getGL2();
-		//GL2ES2 gl = context(ctx).getGL().getGL2ES2();
-		// OK ES2 requires lights to be handed across manually
-		// so once again just force it in there and assume shader has it
-		
-		int lightNum = GL2ES2.GL_LIGHT0 + lightSlot;
-		float[] values = new float[4];
-		
-		values[0] = red;
-		values[1] = green;
-		values[2] = blue;
-		values[3] = 1.0f;
-		gl.glLightfv(lightNum, GL2ES2.GL_DIFFUSE, values, 0);
-		gl.glLightfv(lightNum, GL2ES2.GL_SPECULAR, values, 0);
-		values[0] = -dirx;
-		values[1] = -diry;
-		values[2] = -dirz;
-		values[3] = 0.0f;
-		gl.glLightfv(lightNum, GL2ES2.GL_POSITION, values, 0);
-		gl.glLightfv(lightNum, GL2ES2.GL_AMBIENT, black, 0);
-		gl.glLightf(lightNum, GL2ES2.GL_POSITION, 1.0f);
-		gl.glLightf(lightNum, GL2ES2.GL_LINEAR_ATTENUATION, 0.0f);
-		gl.glLightf(lightNum, GL2ES2.GL_QUADRATIC_ATTENUATION, 0.0f);
-		gl.glLightf(lightNum, GL2ES2.GL_SPOT_EXPONENT, 0.0f);
-		gl.glLightf(lightNum, GL2ES2.GL_SPOT_CUTOFF, 180.0f);*/
-
 		Jogl2es2Context joglesctx = ((Jogl2es2Context) ctx);
+
+		// note the current state of MV MUST be used by the lights when setting position!
+		// https://www.opengl.org/discussion_boards/showthread.php/168706-Light-Position-in-eye-s-cordinate
 
 		// note can't use the modelview as it's  calced late
 
@@ -4796,7 +4661,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	//
 	// PointLightRetained methods
 	//
-
 	@Override
 	void updatePointLight(Context ctx, int lightSlot, float red, float green, float blue, float attenx, float atteny, float attenz,
 			float posx, float posy, float posz)
@@ -4809,7 +4673,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		Jogl2es2Context joglesctx = ((Jogl2es2Context) ctx);
 
 		// note the current state of MV MUST be used by the lights when setting position!
-		//https://www.opengl.org/discussion_boards/showthread.php/168706-Light-Position-in-eye-s-cordinate
+		// https://www.opengl.org/discussion_boards/showthread.php/168706-Light-Position-in-eye-s-cordinate
 
 		// note can't use the modelview as it's calced late		
 		Vector4f lightPos = joglesctx.matrixUtil.transform(joglesctx.currentModelMat, joglesctx.currentViewMat, posx, posy, posz, 1.0f);
@@ -4845,7 +4709,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	//
 	// SpotLightRetained methods
 	//
-
 	@Override
 	void updateSpotLight(Context ctx, int lightSlot, float red, float green, float blue, float attenx, float atteny, float attenz,
 			float posx, float posy, float posz, float spreadAngle, float concentration, float dirx, float diry, float dirz)
@@ -4898,7 +4761,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	//
 	// ExponentialFogRetained methods
 	//
-
 	@Override
 	void updateExponentialFog(Context ctx, float red, float green, float blue, float density)
 	{
@@ -4920,7 +4782,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	//
 	// LinearFogRetained methods
 	//
-
 	@Override
 	void updateLinearFog(Context ctx, float red, float green, float blue, double fdist, double bdist)
 	{
@@ -4943,7 +4804,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	// native method for disabling fog
 	@Override
-
 	void disableFog(Context ctx)
 	{
 		if (VERBOSE)
@@ -4956,7 +4816,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	}
 
 	// native method for setting fog enable flag
-
 	@Override
 	void setFogEnableFlag(Context ctx, boolean enable)
 	{
@@ -4968,6 +4827,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		Jogl2es2Context joglesctx = ((Jogl2es2Context) ctx);
 		joglesctx.fogData.fogEnabled = enable ? 1 : 0;
 	}
+
 	// ---------------------------------------------------------------------
 
 	//
@@ -4991,7 +4851,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	// native method for setting default LineAttributes
 	@Override
-
 	void resetLineAttributes(Context ctx)
 	{
 		if (VERBOSE)
@@ -5010,7 +4869,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	//
 	// MaterialRetained methods
 	//
-
 	@Override
 	void updateMaterial(Context ctx, float red, float green, float blue, float alpha, float aRed, float aGreen, float aBlue, float eRed,
 			float eGreen, float eBlue, float dRed, float dGreen, float dBlue, float sRed, float sGreen, float sBlue, float shininess,
@@ -5085,7 +4943,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	// native method for setting default ColoringAttributes
 	@Override
-
 	void resetColoringAttributes(Context ctx, float r, float g, float b, float a, boolean enableLight)
 	{
 		if (VERBOSE)
@@ -5108,7 +4965,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	// interesting as Points are how particles are done properly!!
 	// http://stackoverflow.com/questions/3497068/textured-points-in-opengl-es-2-0
 	// http://stackoverflow.com/questions/7237086/opengl-es-2-0-equivalent-for-es-1-0-circles-using-gl-point-smooth
-
 	@Override
 	void updatePointAttributes(Context ctx, float pointSize, boolean pointAntialiasing)
 	{
@@ -5144,17 +5000,13 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		Jogl2es2Context joglesctx = ((Jogl2es2Context) ctx);
 		joglesctx.pointSize = 1.0f;
-		// GL2ES2 gl = ((JoglesContext) ctx).gl2es2();
-		// bug in desktop requiring this to be set still
-		// gl.glDisable(0x8642);//GL_VERTEX_PROGRAM_POINT_SIZE
-		// gl.glDisable(34913);//GL.GL_POINT_SPRITE);
 	}
+
 	// ---------------------------------------------------------------------
 
 	//
 	// PolygonAttributesRetained methods
 	//
-
 	@Override
 	void updatePolygonAttributes(Context ctx, int polygonMode, int cullFace, boolean backFaceNormalFlip, float polygonOffset,
 			float polygonOffsetFactor)
@@ -5215,7 +5067,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	// native method for setting default PolygonAttributes
 	@Override
-
 	void resetPolygonAttributes(Context ctx)
 	{
 		if (VERBOSE)
@@ -5255,7 +5106,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	//
 	// RenderingAttributesRetained methods
 	//
-
 	@Override
 	void updateRenderingAttributes(Context ctx, boolean depthBufferWriteEnableOverride, boolean depthBufferEnableOverride,
 			boolean depthBufferEnable, boolean depthBufferWriteEnable, int depthTestFunction, float alphaTestValue, int alphaTestFunction,
@@ -5331,7 +5181,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 		else
 		{
-			// TODO: simple test use alpha blending instead of testing
 			joglesctx.renderingData.alphaTestEnabled = true;
 			joglesctx.renderingData.alphaTestFunction = getFunctionValue(alphaTestFunction);
 			joglesctx.renderingData.alphaTestValue = alphaTestValue;
@@ -5364,7 +5213,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					if (MINIMISE_NATIVE_CALLS_OTHER)
 						joglesctx.gl_state.glEnableGL_STENCIL_TEST = true;
 				}
-
 			}
 			else
 			{
@@ -5383,10 +5231,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	// native method for setting default RenderingAttributes
 	@Override
-
 	void resetRenderingAttributes(Context ctx, boolean depthBufferWriteEnableOverride, boolean depthBufferEnableOverride)
 	{
-
 		if (VERBOSE)
 			System.err.println("JoglPipeline.resetRenderingAttributes()");
 		if (OUTPUT_PER_FRAME_STATS)
@@ -5530,9 +5376,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				if (MINIMISE_NATIVE_CALLS_TRANSPARENCY)
 					joglesctx.gl_state.glEnableGL_BLEND = false;
 			}
-
 		}
-
 	}
 
 	//
@@ -5554,8 +5398,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	// native method for setting default TextureAttributes
 	@Override
-
-	// part of TUS updateNative
 	void resetTextureAttributes(Context ctx)
 	{
 		if (VERBOSE)
@@ -5575,11 +5417,11 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	@Override
 	void resetTexCoordGeneration(Context ctx)
 	{
+		// TexCoordGeneration must be done in shaders
 		// if (VERBOSE)
 		// System.err.println("JoglPipeline.resetTexCoordGeneration()");
 		// if (OUTPUT_PER_FRAME_STATS)
 		// ((JoglesContext) ctx).perFrameStats.resetTexCoordGeneration++;
-
 	}
 
 	// ---------------------------------------------------------------------
@@ -5587,7 +5429,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	//
 	// TextureUnitStateRetained methods
 	//
-
 	@Override
 	void updateTextureUnitState(Context ctx, int index, boolean enable)
 	{
@@ -5610,7 +5451,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					joglesContext.gl_state.glActiveTexture = (index + GL2ES2.GL_TEXTURE0);
 			}
 		}
-
 	}
 
 	// ---------------------------------------------------------------------
@@ -5619,7 +5459,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	// TextureRetained methods
 	// Texture2DRetained methods
 	//
-
 	@Override
 	void bindTexture2D(Context ctx, int objectId, boolean enable)
 	{
@@ -5663,7 +5502,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			int imgYOffset, int tilew, int width, int height, int dataType, Object data, boolean useAutoMipMap)
 	{
 
-		/* Note: useAutoMipMap is not use for SubImage in the jogl pipe */
+		// Note: useAutoMipMap is not use for SubImage in the jogl pipe 
 
 		if (VERBOSE)
 			System.err.println("JoglPipeline.updateTexture2DSubImage()");
@@ -5765,7 +5604,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	//
 	// TextureCubeMapRetained methods
 	//
-
 	@Override
 	void bindTextureCubeMap(Context ctx, int objectId, boolean enable)
 	{
@@ -5806,6 +5644,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	void updateTextureCubeMapSubImage(Context ctx, int face, int level, int xoffset, int yoffset, int textureFormat, int imageFormat,
 			int imgXOffset, int imgYOffset, int tilew, int width, int height, int dataType, Object data, boolean useAutoMipMap)
 	{
+		// PJ why is this the case? 
 		throw new UnsupportedOperationException();
 	}
 
@@ -5908,7 +5747,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			assert false;
 		}
 
-		// FIXME: sky goes black if this is the case (no mipmap)
+		// FIXME: geometries go black if this is the case (no mipmap)
 		// so to disable automipmap, must set it to false in texture I guess?
 		// see above glGenMipMap once on pure ES2 (if on pure ES2?)
 		if (useAutoMipMap)
@@ -5938,7 +5777,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				break;
 			case ImageComponentRetained.TYPE_BYTE_ABGR:
 				if (isExtensionAvailable.GL_EXT_abgr(gl))
-				{ // If its zero, should never come here!
+				{
+					// If its zero, should never come here!
 					format = GL2.GL_ABGR_EXT;
 				}
 				else
@@ -6003,7 +5843,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				internalFormat = imageFormat;
 				format = -1;// indicate compressed
 				break;
-			///////////////////////////////////// PJPJPJ//////////////////////////////
 			case ImageComponentRetained.TYPE_USHORT_GRAY:
 			case ImageComponentRetained.TYPE_INT_BGR:
 			case ImageComponentRetained.TYPE_INT_RGB:
@@ -6022,7 +5861,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			}
 			else
 			{
-
 				if (format == -1)
 				{
 					ByteBuffer bb = (ByteBuffer) data;
@@ -6059,7 +5897,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 						}
 					}
 				}
-
 			}
 		}
 		else if ((dataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_ARRAY)
@@ -6082,7 +5919,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				format = GL2ES2.GL_BGRA;
 				type = GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
 				break;
-			// This method only supports 3 and 4 components formats and INT types.			case ImageComponentRetained.TYPE_BYTE_LA:
+			// This method only supports 3 and 4 components formats and INT types.			
+			case ImageComponentRetained.TYPE_BYTE_LA:
 			case ImageComponentRetained.TYPE_BYTE_GRAY:
 			case ImageComponentRetained.TYPE_USHORT_GRAY:
 			case ImageComponentRetained.TYPE_BYTE_BGR:
@@ -6097,7 +5935,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			if (forceAlphaToOne)
 			{
 				// this is probably fine
-				//new Throwable("forceAlphaToOne").printStackTrace();
+				// new Throwable("forceAlphaToOne").printStackTrace();
 			}
 
 			if (dataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_ARRAY)
@@ -6130,7 +5968,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (imgXOffset > 0 || (width < tilew))
 		{
 			// PJ not sure what should be happening here
-			//new Throwable("forceAlphaToOne").printStackTrace();
+			// new Throwable("(imgXOffset > 0 || (width < tilew))").printStackTrace();
 		}
 
 		int internalFormat = 0;
@@ -6178,7 +6016,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				break;
 			case ImageComponentRetained.TYPE_BYTE_ABGR:
 				if (isExtensionAvailable.GL_EXT_abgr(gl))
-				{ // If its zero, should never come here!
+				{
+					// If its zero, should never come here!
 					format = GL2.GL_ABGR_EXT;
 					numBytes = 4;
 				}
@@ -6243,7 +6082,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			boolean forceAlphaToOne = false;
 			switch (imageFormat)
 			{
-			/* GL_BGR */
+			// GL_BGR 
 			case ImageComponentRetained.TYPE_INT_BGR: /* Assume XBGR format */
 				format = GL2ES2.GL_RGBA;
 				type = GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -6347,41 +6186,16 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		case Texture.BASE_LEVEL_LINEAR:
 			gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER, GL2ES2.GL_LINEAR);
 			break;
-		/*		case Texture.LINEAR_SHARPEN:
-					// We should never get here as we've disabled the TEXTURE_SHARPEN feature
-					//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-					//                        GL2ES2.GL_LINEAR_SHARPEN_SGIS);
-					break;
-				case Texture.LINEAR_SHARPEN_RGB:
-					// We should never get here as we've disabled the TEXTURE_SHARPEN feature
-					//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-					//                        GL2ES2.GL_LINEAR_SHARPEN_COLOR_SGIS);
-					break;
-				case Texture.LINEAR_SHARPEN_ALPHA:
-					// We should never get here as we've disabled the TEXTURE_SHARPEN feature
-					//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-					//                        GL2ES2.GL_LINEAR_SHARPEN_ALPHA_SGIS);
-					break;
-				case Texture2D.LINEAR_DETAIL:
-					// We should never get here as we've disabled the TEXTURE_DETAIL feature
-					//            	gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-					//                        GL2ES2.GL_LINEAR_DETAIL_SGIS);
-					break;
-				case Texture2D.LINEAR_DETAIL_RGB:
-					// We should never get here as we've disabled the TEXTURE_DETAIL feature
-					//            	gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-					//                        GL2ES2.GL_LINEAR_DETAIL_COLOR_SGIS);
-					break;
-				case Texture2D.LINEAR_DETAIL_ALPHA:
-					// We should never get here as we've disabled the TEXTURE_DETAIL feature
-					//            	gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-					//                        GL2ES2.GL_LINEAR_DETAIL_ALPHA_SGIS);
-					break;
-				case Texture.FILTER4:
-					// We should never get here as we've disabled the FILTER4 feature
-					//                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MAG_FILTER,
-					//                        GL2ES2.GL_FILTER4_SGIS);
-					break;*/
+		case Texture.LINEAR_SHARPEN:
+		case Texture.LINEAR_SHARPEN_RGB:
+		case Texture.LINEAR_SHARPEN_ALPHA:
+		case Texture2D.LINEAR_DETAIL:
+		case Texture2D.LINEAR_DETAIL_RGB:
+		case Texture2D.LINEAR_DETAIL_ALPHA:
+		case Texture.FILTER4:
+		default:
+			assert false;
+			return;
 		}
 
 		if (DO_OUTPUT_ERRORS)
@@ -6470,41 +6284,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	}
 
-	/*	private static final String getFilterName(int filter)
-		{
-			switch (filter)
-			{
-			case Texture.FASTEST:
-				return "Texture.FASTEST";
-			case Texture.NICEST:
-				return "Texture.NICEST";
-			case Texture.BASE_LEVEL_POINT:
-				return "Texture.BASE_LEVEL_POINT";
-			case Texture.BASE_LEVEL_LINEAR:
-				return "Texture.BASE_LEVEL_LINEAR";
-			case Texture.MULTI_LEVEL_POINT:
-				return "Texture.MULTI_LEVEL_POINT";
-			case Texture.MULTI_LEVEL_LINEAR:
-				return "Texture.MULTI_LEVEL_LINEAR";
-			case Texture.FILTER4:
-				return "Texture.FILTER4";
-			case Texture.LINEAR_SHARPEN:
-				return "Texture.LINEAR_SHARPEN";
-			case Texture.LINEAR_SHARPEN_RGB:
-				return "Texture.LINEAR_SHARPEN_RGB";
-			case Texture.LINEAR_SHARPEN_ALPHA:
-				return "Texture.LINEAR_SHARPEN_ALPHA";
-			case Texture2D.LINEAR_DETAIL:
-				return "Texture.LINEAR_DETAIL";
-			case Texture2D.LINEAR_DETAIL_RGB:
-				return "Texture.LINEAR_DETAIL_RGB";
-			case Texture2D.LINEAR_DETAIL_ALPHA:
-				return "Texture.LINEAR_DETAIL_ALPHA";
-			default:
-				return "(unknown)";
-			}
-		}*/
-
 	// mapping from java enum to gl enum
 	private static final int[] _gl_textureCubeMapFace = { GL2ES2.GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL2ES2.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
 			GL2ES2.GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL2ES2.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL2ES2.GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
@@ -6514,7 +6293,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	// native method for setting blend color
 	@Override
-	// part of TUS updateNative, though not in fact used
 	void setBlendColor(Context ctx, float red, float green, float blue, float alpha)
 	{
 		if (VERBOSE)
@@ -6535,7 +6313,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	// native method for setting blend func
 	@Override
-	// part of TUS updateNative
 	void setBlendFunc(Context ctx, int srcBlendFunction, int dstBlendFunction)
 	{
 		if (VERBOSE)
@@ -6605,23 +6382,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	}
 
 	// native method for disabling modelClip
-	@Override
 	// this is called as a reset
+	@Override
 	void disableModelClip(Context ctx)
 	{
 		if (VERBOSE)
 			System.err.println("JoglPipeline.disableModelClip()");
-
-		/*GL2 gl = context(ctx).getGL().getGL2();
-		//GL2ES2 gl = context(ctx).getGL().getGL2ES2();
-		// not supported
-		
-		gl.glDisable(GL2ES2.GL_CLIP_PLANE0);
-		gl.glDisable(GL2ES2.GL_CLIP_PLANE1);
-		gl.glDisable(GL2ES2.GL_CLIP_PLANE2);
-		gl.glDisable(GL2ES2.GL_CLIP_PLANE3);
-		gl.glDisable(GL2ES2.GL_CLIP_PLANE4);
-		gl.glDisable(GL2ES2.GL_CLIP_PLANE5);*/
 	}
 
 	// native method for activating a particular texture unit
@@ -6651,7 +6417,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 	// native method for setting default texture
 	@Override
-
 	void resetTextureNative(Context ctx, int texUnitIndex)
 	{
 		if (VERBOSE)
@@ -6667,7 +6432,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			if (!MINIMISE_NATIVE_CALLS_TEXTURE || (joglesContext.gl_state.glActiveTexture != (texUnitIndex + GL2ES2.GL_TEXTURE0)))
 			{
 				gl.glActiveTexture(texUnitIndex + GL2ES2.GL_TEXTURE0);
-				// TODO: should I enable these?
+				// TODO: should I bind these to 0?
 				// gl.glBindTexture(GL2ES2.GL_TEXTURE_2D, 0);//-1 is no texture , 0 is default
 				// gl.glBindTexture(GL2ES2.GL_TEXTURE_CUBE_MAP, 0);
 				if (DO_OUTPUT_ERRORS)
@@ -6676,13 +6441,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					joglesContext.gl_state.glActiveTexture = (texUnitIndex + GL2ES2.GL_TEXTURE0);
 			}
 		}
-
-		/*  
-		gl.glDisable(GL2.GL_TEXTURE_1D);
-		gl.glDisable(GL.GL_TEXTURE_2D);
-		gl.glDisable(GL2.GL_TEXTURE_3D);
-		gl.glDisable(GL.GL_TEXTURE_CUBE_MAP);
-		*/
 	}
 
 	// The native method for setting the ModelView matrix.
@@ -6850,27 +6608,9 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
 		gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT);
 
-		//gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL.GL_REPLACE);
 		gl.glEnable(GL.GL_BLEND);
 		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-
-		//gl.glEnable(GL.GL_TEXTURE_2D);
-
-		//gl.glPushAttrib(GL2.GL_TRANSFORM_BIT);
-		//gl.glMatrixMode(GL.GL_TEXTURE);
-		//gl.glLoadIdentity();
-		//gl.glPopAttrib();
-
-		// loaded identity modelview and projection matrix
-		//gl.glMatrixMode(GL2.GL_PROJECTION);
-		//gl.glLoadIdentity();
-
-		//NOTE! winWidth and winHeight! multiplied into the quad xy below
-		//gl.glOrtho(0.0, winWidth, 0.0, winHeight, 0.0, 0.0);
-
-		//gl.glMatrixMode(GL2.GL_MODELVIEW);
-		//gl.glLoadIdentity();
-
+		
 		if (isExtensionAvailable.GL_EXT_abgr(gl))
 		{
 			glType = GL2.GL_ABGR_EXT;
@@ -6888,14 +6628,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			}
 		}
 
-		//gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, rasWidth);
-		//gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, minX);
-		//gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, minY);
 		gl.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, minX, minY, maxX - minX, maxY - minY, glType, GL.GL_UNSIGNED_BYTE,
 				ByteBuffer.wrap(imageYdown));
-		//gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, 0);
-		//gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, 0);
-		//gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, 0);
 
 		float texMinU = (float) minX / (float) texWidth;
 		float texMinV = (float) minY / (float) texHeight;
@@ -6917,7 +6651,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		// Java 3D always clears the Z-buffer
 		gl.glDepthMask(true);
 		gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
-		//gl.glPopAttrib();
 	}
 
 	@Override
@@ -6990,7 +6723,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (VERBOSE)
 			System.err.println("JoglPipeline.setRenderMode()");
 
-		//TODO: why is this not done in swap or sync?  
+		// TODO: why is this not done in swap or sync?  
 		// UGLY HACK the render mode is set to Canvas3D.FIELD_ALL after all
 		// geoms are drawn
 		// so I take the opportunity to unbind the vertex array
@@ -7003,8 +6736,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				outputErrors(ctx);
 		}
 
-		//GL2ES2 gl = context(ctx).getGL().getGL2ES2();
-		//no no drawBuffer, possibly just skip it for now
+		// GL2ES2 gl = context(ctx).getGL().getGL2ES2();
+		// no no drawBuffer, possibly just skip it for now
 		// ES2 is much more complex with buffers https://www.khronos.org/registry/gles/extensions/EXT/EXT_draw_buffers.txt
 
 		/*	int drawBuf = 0;
@@ -7144,15 +6877,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		{
 			ctx.setAlphaClearValue(1.0f);
 		}
-		/*if (gl.isExtensionAvailable("GL_ARB_vertex_shader"))
-		{
-			gl.glGetIntegerv(GL2ES2.GL_MAX_TEXTURE_COORDS_ARB, tmp, 0);
-			ctx.setMaxTexCoordSets(tmp[0]);
-		}*/
 		return true;
 	}
 
-	// Used by createNewContext above
+	// Used by createNewContext below
 	private static int[] extractVersionInfo(String versionString)
 	{
 		// FIXME: use the second flash regex system to get the first number out
@@ -7192,7 +6920,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		return new int[] { major, minor };
 	}
 
-	// Used by createNewContext above
+	// Used by createNewContext below
 	private static void checkTextureExtensions(Canvas3D cv, JoglContext ctx, GL2ES2 gl, boolean gl13)
 	{
 		if (gl13)
@@ -7286,7 +7014,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 	}
 
-	// Used by createNewContext above
+	// Used by createNewContext below
 	private static void setupCanvasProperties(Canvas3D cv, JoglContext ctx, GL2ES2 gl)
 	{
 		// Note: this includes relevant portions from both the
@@ -7510,7 +7238,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
 	}
 
-	// Not needed generally as transpose can be called on the inteface with gl
+	// Not needed generally as transpose can be called on the interface with gl
 	public static void copyTranspose(double[] src, double[] dst)
 	{
 		dst[0] = src[0];
@@ -8042,7 +7770,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		return true;
 	}
 
-	//only used for never release, just to spot first call
+	//only used for NEVER_RELEASE_CONTEXT, just to spot first call
 	public static boolean currently_current = false;
 
 	// Optionally release the context. Returns true if the context was released.
@@ -8079,6 +7807,107 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		// FIXME: this isn't quite what the NativePipeline returns but
 		// is probably close enough
 		return 8;
+	}
+	
+	// This is the native for reading the image from the offscreen buffer
+	@Override
+	void readOffScreenBuffer(Canvas3D cv, Context ctx, int format, int dataType, Object data, int width, int height)
+	{
+		if (VERBOSE)
+			System.err.println("JoglPipeline.readOffScreenBuffer()");
+
+		GLDrawable glDrawable = ((JoglDrawable) cv.drawable).getGLDrawable();
+		GLCapabilitiesImmutable chosenCaps = glDrawable.getChosenGLCapabilities();
+		GLFBODrawable fboDrawable = null;
+
+		GL2ES2 gl = context(ctx).getGL().getGL2ES2();
+
+		// If FBO
+		if (chosenCaps.isFBO())
+		{
+
+			fboDrawable = (GLFBODrawable) glDrawable;
+
+			if (chosenCaps.getDoubleBuffered())
+			{
+				// swap = resolve multisampling or flip back/front FBO
+				fboDrawable.swapBuffers();
+				// unbind texture render target, we read from FBO
+				gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+			}
+
+			// bind FBO for reading pixel data
+			// GL_FRONT = SamplingSinkFBO if double buffered and multisampled
+			// GL_FRONT if double buffered ( = GL_BAck before swap was called)
+			// GL_FRONT = GL_BACK if single buffered (single FBO)
+
+			fboDrawable.getFBObject(GL.GL_FRONT).bind(gl);
+		}
+		// else pbuffer
+
+		//gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, width);
+		gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
+
+		int type = 0;
+
+		if ((dataType == ImageComponentRetained.IMAGE_DATA_TYPE_BYTE_ARRAY)
+				|| (dataType == ImageComponentRetained.IMAGE_DATA_TYPE_BYTE_BUFFER))
+		{
+
+			switch (format)
+			{
+			// GL_BGR
+			case ImageComponentRetained.TYPE_BYTE_BGR:
+				type = GL2.GL_BGR;// not ok
+				break;
+			case ImageComponentRetained.TYPE_BYTE_RGB:
+				type = GL.GL_RGB;//ok
+				break;
+			// GL_ABGR_EXT
+			case ImageComponentRetained.TYPE_BYTE_ABGR:
+				if (isExtensionAvailable.GL_EXT_abgr(gl))
+				{ // If false, should never come here!  
+					type = GL2.GL_ABGR_EXT; //ok
+				}
+				else
+				{
+					assert false;
+					return;
+				}
+				break;
+			case ImageComponentRetained.TYPE_BYTE_RGBA:
+				type = GL.GL_RGBA;// this a valid case for GL2ES2
+				break;
+
+			/*
+			 * This method only supports 3 and 4 components formats and BYTE
+			 * types.
+			 */
+			case ImageComponentRetained.TYPE_BYTE_LA:
+			case ImageComponentRetained.TYPE_BYTE_GRAY:
+			case ImageComponentRetained.TYPE_USHORT_GRAY:
+			case ImageComponentRetained.TYPE_INT_BGR:
+			case ImageComponentRetained.TYPE_INT_RGB:
+			case ImageComponentRetained.TYPE_INT_ARGB:
+			default:
+				throw new AssertionError("illegal format " + format);
+			}
+
+			gl.glReadPixels(0, 0, width, height, type, GL.GL_UNSIGNED_BYTE, ByteBuffer.wrap((byte[]) data));
+			if (DO_OUTPUT_ERRORS)
+				outputErrors(ctx);
+		}
+		else
+		{
+			throw new AssertionError("illegal image data type " + dataType + " Try creating a BufferedImage of type TYPE_3BYTE_BGR");
+		}
+
+		// If FBO
+		if (chosenCaps.isFBO())
+		{
+			// bind FBO for drawing
+			fboDrawable.getFBObject(GL.GL_BACK).bind(gl);
+		}
 	}
 
 	// ----------------------- Below here are initialization methods
@@ -8138,7 +7967,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		{
 			glDrawable = drawable(cv.drawable); // cv.drawable != null, set in			
 			// 'createOffScreenBuffer'			
-			glContext = glDrawable.createContext(context(shareCtx));			
+			glContext = glDrawable.createContext(context(shareCtx));
 		}
 		else
 		{
@@ -8163,7 +7992,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 
 		// assuming that this only gets called after addNotify has been called
-		if(!glDrawable.isRealized())
+		if (!glDrawable.isRealized())
 			glDrawable.setRealized(true);
 
 		// Apparently we are supposed to make the context current at this point
@@ -8526,12 +8355,11 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	@Override
 	Drawable createOffScreenBuffer(Canvas3D cv, Context ctx, int width, int height)
 	{
-		
+
 		//OK general problem, 2 calls to setOffscreen buffer o a canvas3d will call this method once, attaching a
 		// a new drawable all good, but
 		// will then call makeNewContext twice using that same drawable, and that drawable doesn't like make current called twice
-		
-		
+
 		if (VERBOSE)
 			System.err.println("JoglPipeline.createOffScreenBuffer()");
 
@@ -8609,106 +8437,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		// it is done in 'destroyContext'
 	}
 
-	// This is the native for reading the image from the offscreen buffer
-	@Override
-	void readOffScreenBuffer(Canvas3D cv, Context ctx, int format, int dataType, Object data, int width, int height)
-	{
-		if (VERBOSE)
-			System.err.println("JoglPipeline.readOffScreenBuffer()");
-	
-		GLDrawable glDrawable = ((JoglDrawable) cv.drawable).getGLDrawable();
-		GLCapabilitiesImmutable chosenCaps = glDrawable.getChosenGLCapabilities();
-		GLFBODrawable fboDrawable = null;
-
-		GL2ES2 gl = context(ctx).getGL().getGL2ES2();
-
-		// If FBO
-		if (chosenCaps.isFBO())
-		{
-
-			fboDrawable = (GLFBODrawable) glDrawable;
-
-			if (chosenCaps.getDoubleBuffered())
-			{
-				// swap = resolve multisampling or flip back/front FBO
-				fboDrawable.swapBuffers();
-				// unbind texture render target, we read from FBO
-				gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
-			}
-
-			// bind FBO for reading pixel data
-			// GL_FRONT = SamplingSinkFBO if double buffered and multisampled
-			// GL_FRONT if double buffered ( = GL_BAck before swap was called)
-			// GL_FRONT = GL_BACK if single buffered (single FBO)
-
-			fboDrawable.getFBObject(GL.GL_FRONT).bind(gl);
-		}
-		// else pbuffer
-
-		//gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, width);
-		gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
-
-		int type = 0;
-
-		if ((dataType == ImageComponentRetained.IMAGE_DATA_TYPE_BYTE_ARRAY)
-				|| (dataType == ImageComponentRetained.IMAGE_DATA_TYPE_BYTE_BUFFER))
-		{
-
-			switch (format)
-			{
-			// GL_BGR
-			case ImageComponentRetained.TYPE_BYTE_BGR:
-				type = GL2.GL_BGR;// not ok
-				break;
-			case ImageComponentRetained.TYPE_BYTE_RGB:
-				type = GL.GL_RGB;//ok
-				break;
-			// GL_ABGR_EXT
-			case ImageComponentRetained.TYPE_BYTE_ABGR:
-				if (isExtensionAvailable.GL_EXT_abgr(gl))
-				{ // If false, should never come here!  
-					type = GL2.GL_ABGR_EXT; //ok
-				}
-				else
-				{
-					assert false;
-					return;
-				}
-				break;
-			case ImageComponentRetained.TYPE_BYTE_RGBA:
-				type = GL.GL_RGBA;// this a valid case for GL2ES2
-				break;
-
-			/*
-			 * This method only supports 3 and 4 components formats and BYTE
-			 * types.
-			 */
-			case ImageComponentRetained.TYPE_BYTE_LA:
-			case ImageComponentRetained.TYPE_BYTE_GRAY:
-			case ImageComponentRetained.TYPE_USHORT_GRAY:
-			case ImageComponentRetained.TYPE_INT_BGR:
-			case ImageComponentRetained.TYPE_INT_RGB:
-			case ImageComponentRetained.TYPE_INT_ARGB:
-			default:
-				throw new AssertionError("illegal format " + format);
-			}
-
-			gl.glReadPixels(0, 0, width, height, type, GL.GL_UNSIGNED_BYTE, ByteBuffer.wrap((byte[]) data));
-			if (DO_OUTPUT_ERRORS)
-				outputErrors(ctx);
-		}
-		else
-		{
-			throw new AssertionError("illegal image data type " + dataType + " Try creating a BufferedImage of type TYPE_3BYTE_BGR");
-		}
-
-		// If FBO
-		if (chosenCaps.isFBO())
-		{
-			// bind FBO for drawing
-			fboDrawable.getFBObject(GL.GL_BACK).bind(gl);
-		}
-	}
 
 	// Setup the full scene antialising in D3D and ogl when GL_ARB_multisamle supported
 	@Override
@@ -9240,6 +8968,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	}
 
 	// AWT AWT AWT AWT AWT AWT AWT AWT AWT
+	// everything below here demands or is used by awt code
 	// ---------------------------------------------------------------------
 
 	// Determine whether specified graphics config is supported by pipeline
@@ -9278,7 +9007,6 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	// This method must return a valid GraphicsConfig, or else it must throw
 	// an exception if one cannot be returned.
 	@Override
-	// during Canvas3D init
 	GraphicsConfiguration getGraphicsConfig(GraphicsConfiguration gconfig)
 	{
 
