@@ -13,6 +13,19 @@ application.
 
 II - Performance in the API
 
+
+	Due to some introduced bugs in the Java3D API some of the most important performance features
+	are effectively disabled. As of Java3D 1.7.0 they can be turned back on but will require some 
+	code changes through any given project due to the possibility of reliance on the features
+	that broke the compilation system. 
+	In order to maximize compilation of the scene graph you must have these properties set:
+	j3d.defaultReadCapabilities = false 
+	j3d.defaultNodePickable = false 
+	j3d.defaultNodeCollidable = false 
+	Also, contrary to documentation you MUST manually call compile on BranchGroups and SharedGroups before adding
+	them to the scene graph, it does not happen automatically.
+	
+
     There are a number of things in the API that were included specifically 
 to increase performance.  This section examines a few of them.
 
@@ -327,19 +340,19 @@ performance.
 	that don't follow these guidelines completely.
 
 	- Behaviors
-	    One of these cases is the Behavior scheduler when there
-	    are pending WakeupOnElapsedTime criteria.  In this case,
-	    it needs to wakeup when the minimum WakeupOnElapsedTime
-	    criteria is about to expire.  So, application use of
-	    WakeupOnElapsedTime can cause the Behavior scheduler to
-	    run more often than might be necessary.
+	One of these cases is the Behavior scheduler when there
+	are pending WakeupOnElapsedTime criteria.  In this case,
+	it needs to wakeup when the minimum WakeupOnElapsedTime
+	criteria is about to expire.  So, application use of
+	WakeupOnElapsedTime can cause the Behavior scheduler to
+	run more often than might be necessary.
 
 	- Sounds
-	    The final special case for Java 3D threads is the Sound
-	    subsystem.  Due to some limitations in the current sound
-	    rendering engine, enabling sounds cause the sound engine
-	    to potentially run at a higher priority than other
-	    threads.  This may adversely effect performance.
+	The final special case for Java 3D threads is the Sound
+	subsystem.  Due to some limitations in the current sound
+	rendering engine, enabling sounds cause the sound engine
+	to potentially run at a higher priority than other
+	threads.  This may adversely effect performance.
 
     - Threads in General
 	There is one last comment to make on threads is general.
@@ -351,12 +364,12 @@ performance.
 	etc.), more CPUs could be utilized.
 
      - Switch Nodes for Occlusion Culling
-       If the application is a first person point of view
-       application, and the environment is well known, Switch nodes
-       may be used to implement simple occlusion culling.  The
-       children of the switch node that are not currently visible may
-       be turned off.  If the application has this kind of knowledge,
-       this can be a very useful technique.
+	If the application is a first person point of view
+	application, and the environment is well known, Switch nodes
+	may be used to implement simple occlusion culling.  The
+	children of the switch node that are not currently visible may
+	be turned off.  If the application has this kind of knowledge,
+	this can be a very useful technique.
 
     - Switch Nodes for Animation
 	Most animation is accomplished by changing the transformations
@@ -385,13 +398,3 @@ performance.
 	and better picking performance, use PickRay instead of
 	PickCone/PickCylnder unless you need to pick line/point.
 	PickCanvas with a tolerance of 0 will use PickRay for picking.
-
-    - D3D user only
-	Using Quad with Polygon line mode is very slow.  This is because
-	DirectX doesn't support Quad.  Breaking down the Quad
-	into two triangles causes the the diagonal line to be displayed.
-	Instead Java 3D draws the polygon line and does the hidden surface
-	removal manually.
-
-	Automatic texture generation mode Eye Linear is slower
-	because D3D doesn't support this mode.

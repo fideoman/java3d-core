@@ -84,13 +84,11 @@ The shader will compile and run fine, but you will get no data in that variable.
 
 ##GL2ES2Pipeline limitations  
 These limitations will be written out to standard err if they can be detected by the pipeline. In many cases they cannot, and will either be ignored or throw an exception.
-The GL2ES2 pipeline only supports a subset of the Geometry data types and formats.
 * Coordinates must be defined and float type, colors must be float type, if defined. 
-* J3DGraphics2D of Canvas3D is not supported 
-* Rasters and Decaling is not supported. 
+* Decaling is not supported. 
 * Model Clip is not supported and must be re-implemented in shaders 
 * QuadArray or IndexedQuadArray cannot be supported. 
-* Texture Coordinate generation cannot be supported. 
+* Texture Coordinate generation cannot be supported, examples of it's use can be found in SimpleShaderAppearance in the Java3d-Utils. 
 * Texture Lod, Filter, Sharpen and Combine cannot be supported
 * Texture3D cannot be supported. 
 * Accum style anti-aliasing cannot be supported. 
@@ -100,7 +98,6 @@ The GL2ES2 pipeline only supports a subset of the Geometry data types and format
 * Antialiasing enable/disable GL\_MULTI\_SAMPLE is gone, but the method glSampleCoverage exists still, so if the caps support it then it must be on
 GL\_SAMPLE\_ALPHA\_TO\_COVERAGE and GL\_SAMPLE\_COVERAGE can be enabled under ES2
 * Display lists are removed, so if you are not using by_ref geometry you are likely to need to add System.setProperty("j3d.displaylist", "false");.
-* TextureFillBackground is not supported, but geometry Background works
 * Line patterns cannot be supported
 * Screen door transparency cannot be supported
 * AutoMipMaps are disabled as pure ES2 has a separate system glGenMipMaps but GL2ES2 doesn’t support this
