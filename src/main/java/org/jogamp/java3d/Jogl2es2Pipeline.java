@@ -67,6 +67,7 @@ import com.jogamp.nativewindow.CapabilitiesChooser;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.OffscreenLayerOption;
 import com.jogamp.nativewindow.ProxySurface;
 import com.jogamp.nativewindow.UpstreamSurfaceHook;
 import com.jogamp.nativewindow.VisualIDHolder;
@@ -8211,11 +8212,15 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			return false;
 
 		JoglDrawable joglDrawble = (JoglDrawable) cv.drawable;
-		JAWTWindow jawtwindow = (JAWTWindow) joglDrawble.getNativeWindow();
-		if (jawtwindow == null)
-			return false;
-
-		return jawtwindow.isOffscreenLayerSurfaceEnabled();
+		if (joglDrawble.getNativeWindow() instanceof OffscreenLayerOption)
+		{
+			OffscreenLayerOption olo = (OffscreenLayerOption) joglDrawble.getNativeWindow();
+			if (olo == null)
+				return false;
+			else
+				return olo.isOffscreenLayerSurfaceEnabled();
+		}
+		return false;
 	}
 
 	static boolean hasFBObjectSizeChanged(JoglDrawable jdraw, int width, int height)
