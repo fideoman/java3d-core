@@ -795,6 +795,8 @@ ArrayList<Integer> textureIdResourceFreeList = new ArrayList<Integer>();
 
     // Max number of vertex attrs (not counting coord, etc.)
     int maxVertexAttrs = 0;
+    
+    int maxVaryingVectors = 0;
 
     // End of variables set by createNewContext()/createQueryContext()
 
@@ -3741,8 +3743,12 @@ ArrayList<TextureRetained> textureIDResourceTable = new ArrayList<TextureRetaine
         keys.add("textureImageUnitsCombinedMax");
         values.add(new Integer(maxCombinedTextureImageUnits));
 
+        keys.add("maxVaryingVectors");
+        values.add(new Integer(maxVaryingVectors));
+        
         keys.add("vertexAttrsMax");
         values.add(new Integer(maxVertexAttrs));
+        
 
 	keys.add("shadingLanguageGLSL");
 	values.add(new Boolean(shadingLanguageGLSL));
