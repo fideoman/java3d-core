@@ -319,7 +319,11 @@ public class Appearance extends NodeComponent {
      * state variables. All component object references are initialized
      * to null.
      */
-    public Appearance() {
+    public Appearance() {    	
+    	//Note use of this constructor before Canvas3D or Universe will result in a null pipeline and no warning
+    	if(!(this instanceof ShaderAppearance) && Pipeline.getPipeline() instanceof Jogl2es2Pipeline)
+    		System.err.println("Appearance will display nothing when using the Jogl2es2 Pipeline, consider using a ShaderAppearance");
+    	
 	// Just use default values
         // set default read capabilities
         setDefaultReadCapabilities(readCapabilities);
