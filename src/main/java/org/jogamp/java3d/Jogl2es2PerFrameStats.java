@@ -41,6 +41,7 @@ public class Jogl2es2PerFrameStats
 	public int glDrawStripElements;
 	public int glDrawStripElementsStrips;
 	public int glDrawElements;
+	public int executeSkippedNoShaderProgram;
 	public int setFFPAttributes;
 	public int programToLocationData;
 	public int enableTexCoordPointer;
@@ -149,6 +150,8 @@ public class Jogl2es2PerFrameStats
 		System.out.println("---");
 		System.out.println("setModelViewMatrix " + setModelViewMatrix);
 		System.out.println("setFFPAttributes " + setFFPAttributes);
+		System.out.println("executeSkippedNoShaderProgram " + executeSkippedNoShaderProgram);
+
 		System.out.println("modelMatrixUpdated " + modelMatrixUpdated + " modelMatrixSkipped " + modelMatrixSkipped);
 		System.out
 				.println("glModelViewMatrixUpdated " + glModelViewMatrixUpdated + " glModelViewMatrixSkipped " + glModelViewMatrixSkipped);
