@@ -158,6 +158,8 @@ public class Jogl2es2Context extends JoglContext
 
 	public RenderingData renderingData = new RenderingData();
 
+	public float transparencyAlpha = 0;
+
 	public Vector4f currentAmbientColor = new Vector4f();
 
 	public Matrix4d textureTransform = new Matrix4d();
@@ -191,6 +193,7 @@ public class Jogl2es2Context extends JoglContext
 		public int ignoreVertexColors = -1;
 		public int glLightModelambient = -1;
 		public int objectColor = -1;
+		public int transparencyAlpha = -1;
 		public int alphaTestEnabled = -1;
 		public int alphaTestFunction = -1;
 		public int alphaTestValue = -1;
@@ -254,6 +257,7 @@ public class Jogl2es2Context extends JoglContext
 		public int ignoreVertexColors; //-1 indicates not set yet, always set
 		public Vector4f glLightModelambient = new Vector4f();
 		public Vector4f objectColor = new Vector4f();
+		public float transparencyAlpha;
 		public Matrix4d textureTransform = new Matrix4d();
 		public Matrix4d modelMatrix = new Matrix4d();
 		public Matrix4d glModelViewMatrix = new Matrix4d();
@@ -301,6 +305,7 @@ public class Jogl2es2Context extends JoglContext
 			ignoreVertexColors = -1;
 			glLightModelambient.set(-999f, -999f, -999f, -999f);
 			objectColor.set(-999f, -999f, -999f, -999f);
+			transparencyAlpha = -1;
 			textureTransform.setIdentity();
 			modelMatrix.setIdentity();
 			glModelViewMatrix.setIdentity();

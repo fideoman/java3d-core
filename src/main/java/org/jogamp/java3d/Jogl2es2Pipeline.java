@@ -3149,6 +3149,20 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			}
 		}
 
+		// always bind object color, the shader can decide to use it if it's no lighting and no vertex colors
+		if (locs.transparencyAlpha != -1)
+		{
+			if (!MINIMISE_NATIVE_CALLS_FFP
+					|| (shaderProgramId != ctx.prevShaderProgram || ctx.gl_state.transparencyAlpha != ctx.transparencyAlpha))
+			{
+				gl.glUniform1f(locs.transparencyAlpha, ctx.transparencyAlpha);
+				if (DO_OUTPUT_ERRORS)
+					outputErrors(ctx);
+				if (MINIMISE_NATIVE_CALLS_FFP)
+					ctx.gl_state.transparencyAlpha = ctx.transparencyAlpha;
+			}
+		}
+
 		// count of enabled lights currentEnabledLights
 		if (locs.numberOfLights != -1)
 		{
@@ -3322,6 +3336,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				locs.ignoreVertexColors = gl.glGetUniformLocation(shaderProgramId, "ignoreVertexColors");
 				locs.glLightModelambient = gl.glGetUniformLocation(shaderProgramId, "glLightModelambient");
 				locs.objectColor = gl.glGetUniformLocation(shaderProgramId, "objectColor");
+				locs.transparencyAlpha = gl.glGetUniformLocation(shaderProgramId, "transparencyAlpha");
 				locs.alphaTestEnabled = gl.glGetUniformLocation(shaderProgramId, "alphaTestEnabled");
 				locs.alphaTestFunction = gl.glGetUniformLocation(shaderProgramId, "alphaTestFunction");
 				locs.alphaTestValue = gl.glGetUniformLocation(shaderProgramId, "alphaTestValue");
@@ -5301,6 +5316,8 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		GL2ES2 gl = ((Jogl2es2Context) ctx).gl2es2();
 		Jogl2es2Context joglesctx = ((Jogl2es2Context) ctx);
 
+		joglesctx.transparencyAlpha = alpha;
+
 		if ((transparencyMode < TransparencyAttributes.SCREEN_DOOR)
 				|| ((((geometryType & RenderMolecule.LINE) != 0) || (polygonMode == PolygonAttributes.POLYGON_LINE)) && lineAA)
 				|| ((((geometryType & RenderMolecule.POINT) != 0) || (polygonMode == PolygonAttributes.POLYGON_POINT)) && pointAA))
@@ -5348,6 +5365,9 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 
 		GL2ES2 gl = ((Jogl2es2Context) ctx).gl2es2();
 		Jogl2es2Context joglesctx = ((Jogl2es2Context) ctx);
+		
+		joglesctx.transparencyAlpha = 1.0f;
+		
 		if (((((geometryType & RenderMolecule.LINE) != 0) || (polygonMode == PolygonAttributes.POLYGON_LINE)) && lineAA)
 				|| ((((geometryType & RenderMolecule.POINT) != 0) || (polygonMode == PolygonAttributes.POLYGON_POINT)) && pointAA))
 		{
@@ -7901,7 +7921,61 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				throw new AssertionError("illegal format " + format);
 			}
 
-			gl.glReadPixels(0, 0, width, height, type, GL.GL_UNSIGNED_BYTE, ByteBuffer.wrap((byte[]) data));
+			ByteBuffer buf = null;
+			if (dataType == ImageComponentRetained.IMAGE_DATA_TYPE_BYTE_ARRAY)
+			{
+				buf = ByteBuffer.wrap((byte[]) data);
+			}
+			else
+			{
+				buf = (ByteBuffer) data;
+			}
+			
+			gl.glReadPixels(0, 0, width, height, type, GL.GL_UNSIGNED_BYTE, buf);
+			if (DO_OUTPUT_ERRORS)
+				outputErrors(ctx);
+		}
+		else if ((dataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_ARRAY)
+				|| (dataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_BUFFER))
+		{
+			switch (format)
+			{
+			// GL_BGR
+			case ImageComponentRetained.TYPE_INT_BGR:
+				type = GL2.GL_BGR;// not ok
+				break;
+			case ImageComponentRetained.TYPE_INT_RGB:
+				type = GL.GL_RGB;//ok
+				break;			
+			case ImageComponentRetained.TYPE_INT_ARGB:
+				type = GL.GL_RGBA;// this a valid case for GL2ES2
+				break;
+
+			/*
+			 * This method only supports 3 and 4 components formats and INT
+			 * types.
+			 */
+			case ImageComponentRetained.TYPE_BYTE_LA:
+			case ImageComponentRetained.TYPE_BYTE_GRAY:
+			case ImageComponentRetained.TYPE_USHORT_GRAY:
+			case ImageComponentRetained.TYPE_BYTE_BGR:
+			case ImageComponentRetained.TYPE_BYTE_RGB:
+			case ImageComponentRetained.TYPE_BYTE_RGBA:
+			default:
+				throw new AssertionError("illegal format " + format);
+			}
+
+			IntBuffer buf = null;
+			if (dataType == ImageComponentRetained.IMAGE_DATA_TYPE_INT_ARRAY)
+			{
+				buf = IntBuffer.wrap((int[]) data);
+			}
+			else
+			{
+				buf = (IntBuffer) data;
+			}
+			
+			gl.glReadPixels(0, 0, width, height, type, GL.GL_UNSIGNED_BYTE, buf);
 			if (DO_OUTPUT_ERRORS)
 				outputErrors(ctx);
 		}
