@@ -7002,7 +7002,9 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			cv.anisotropicDegreeMax = tmp[0];
 		}
 
-		if (!VirtualUniverse.mc.enforcePowerOfTwo && gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two"))
+		//Gles uses the GL_OES_texture_npot extension 
+		if (!VirtualUniverse.mc.enforcePowerOfTwo && (gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two") ||
+				gl.isExtensionAvailable("GL_OES_texture_npot")))
 		{
 			cv.textureExtendedFeatures |= Canvas3D.TEXTURE_NON_POWER_OF_TWO;
 		}
