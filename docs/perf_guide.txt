@@ -13,18 +13,21 @@ application.
 
 II - Performance in the API
 
-
 	Due to some introduced bugs in the Java3D API some of the most important performance features
 	are effectively disabled. As of Java3D 1.7.0 they can be turned back on but will require some 
 	code changes through any given project due to the possibility of reliance on the features
 	that broke the compilation system. 
 	In order to maximize compilation of the scene graph you must have these properties set:
-	j3d.defaultReadCapabilities = false 
+	j3d.defaultReadCapability = false 
 	j3d.defaultNodePickable = false 
 	j3d.defaultNodeCollidable = false 
 	Also, contrary to documentation you MUST manually call compile on BranchGroups and SharedGroups before adding
 	them to the scene graph, it does not happen automatically.
+	With defaultReadCapability set to false you will need to enable any read capabilities, but be aware that they should only 
+	be set enabled where necessary as they heavily impact the compile function.  
 	
+	Note when using the new Jogl2es2Pipeline, there are no display lists, so all references to their usage below are not valid.
+		
 
     There are a number of things in the API that were included specifically 
 to increase performance.  This section examines a few of them.
@@ -64,7 +67,7 @@ to increase performance.  This section examines a few of them.
 	completely defined by the direct path from the root node to the
 	given leaf.  That means that leaf nodes have no effect on other
 	leaf nodes, and therefore may be rendered in any order.  There 
-	are a few ordering requirements for direct descendents of 
+	are a few ordering requirements for direct descendants of 
 	OrderedGroup nodes or Transparent objects.  But, most leaf nodes
 	may be reordered to facilitate more efficient rendering.
 
