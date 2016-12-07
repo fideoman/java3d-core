@@ -1159,6 +1159,13 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		 boolean updateAlpha, float alpha,
 		 int screen, boolean ignoreVertexColors) {
 
+    	//FIXME: PJPJPJ big ugly hack for buffers
+    	if(cv.ctx!= prevContext)
+    	{
+    		ctxExecutedOn.add(cv.ctx);
+    		prevContext = cv.ctx;
+    	}
+    	
 	int cdirty;
 	boolean useAlpha = false;
 	Object[] retVal;
