@@ -26,7 +26,7 @@
 
 package org.jogamp.java3d;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 /**
  * TransformInterpolator is an abstract class that extends
  * Interpolator to provide common methods used by various transform
@@ -155,11 +155,11 @@ public abstract class TransformInterpolator extends Interpolator {
      * First it gets the alpha value that corresponds to the current time.
      * Then it calls computeTransform() method to computes the transform based on this
      * alpha vaule,  and updates the specified TransformGroup node with this new transform.
-     * @param criteria an enumeration of the criteria that caused the
+     * @param criteria an iterator of the criteria that caused the
      * stimulus
      */
     @Override
-    public void processStimulus(Enumeration criteria) {
+    public void processStimulus(Iterator<WakeupCriterion> criteria) {
 	// Handle stimulus
 	WakeupCriterion criterion = passiveWakeupCriterion;
 

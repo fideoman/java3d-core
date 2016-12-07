@@ -30,7 +30,7 @@ package org.jogamp.java3d;
  * The RenderMethod interface is used to create various ways to render
  * different geometries.
  */
-
+@Deprecated
 class CompressedGeometryRenderMethod implements RenderMethod {
 
     /**

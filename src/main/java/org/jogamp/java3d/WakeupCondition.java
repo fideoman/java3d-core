@@ -26,14 +26,14 @@
 
 package org.jogamp.java3d;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 /**
  * An abstract class specifying a single wakeup Condition. This class
  * is extended by the WakeupCriterion, WakeupOr, WakeupAnd,
  * WakeupOrOfAnds, and WakeupAndOfOr classes. A Behavior node hands a
  * WakeupCondition object to the behavior scheduler and the behavior
- * scheduler hands back an enumeration of that WakeupCondition.
+ * scheduler hands back an iterator of that WakeupCondition.
  */
 
 public abstract class WakeupCondition extends Object {
@@ -75,24 +75,32 @@ public abstract class WakeupCondition extends Object {
     int listIdx[][];
 
     /**
-     * Returns an enumeration of all WakeupCriterias in this Condition.
+     * Returns an iterator of all WakeupCriterias in this Condition.
      */
-    public Enumeration allElements() {
-	if (allEnum == null) {
+	public Iterator<WakeupCriterion> allElements()
+	{
+		if (allEnum == null)
+		{
 	    allEnum = new WakeupCriteriaEnumerator(this, ALL_ELEMENTS);
-	} else {
+		}
+		else
+		{
 	    allEnum.reset(this, ALL_ELEMENTS);
 	}
 	return allEnum;
     }
 
     /**
-     * Returns an enumeration of all triggered WakeupCriterias in this Condition.
+     * Returns an iterator of all triggered WakeupCriterias in this Condition.
      */
-    public Enumeration triggeredElements() {
-	if (trigEnum == null) {
+	public Iterator<WakeupCriterion> triggeredElements()
+	{
+		if (trigEnum == null)
+		{
 	    trigEnum = new WakeupCriteriaEnumerator(this, TRIGGERED_ELEMENTS);
-	} else {
+		}
+		else
+		{
 	    trigEnum.reset(this, TRIGGERED_ELEMENTS);
 	}
 	return trigEnum;

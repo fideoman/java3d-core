@@ -28,7 +28,7 @@ package org.jogamp.java3d;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Vector;
 
 import org.jogamp.vecmath.Color3f;
@@ -963,11 +963,11 @@ public Light getLight(int index) {
 }
 
 /**
- * Retrieves the enumeration object of all the lights.
- * @return the enumeration object of all the lights
+ * Retrieves the iterator object of all the lights.
+ * @return the iterator object of all the lights
  */
-public Enumeration<Light> getAllLights() {
-	return uLights.elements();
+public Iterator<Light> getAllLights() {
+	return uLights.iterator();
 }
 
     /**
@@ -1329,11 +1329,11 @@ public Sound getSound(int index) {
 }
 
 /**
- * Retrieves the enumeration object of all the sounds.
- * @return the enumeration object of all the sounds
+ * Retrieves the iterator object of all the sounds.
+ * @return the iterator object of all the sounds
  */
-public Enumeration<Sound> getAllSounds() {
-	return uSounds.elements();
+public Iterator<Sound> getAllSounds() {
+	return uSounds.iterator();
 }
 
     /**

@@ -36,6 +36,7 @@ package org.jogamp.java3d;
  * @see GeneralizedStrip
  * @see GeneralizedVertexList
  */
+@Deprecated
 interface GeneralizedStripFlags {
 
     /**

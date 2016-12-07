@@ -6,3 +6,134 @@ with the Maven group identifier and to avoid name clashes with the obsolete
 versions of Java3D shipped with OS X and loaded as extensions.
 
 II. Addition of a new pipeline org.jogamp.Jogl2es2pipeline see  /docs/GL2ES2Pipeline usage guide.md for usage.
+
+III. All usages of Enumeration and been swapped to use the less internally complex Iterator 
+
+Altered classes, fields, constructors, methods
+ 
+ 	AudioDeviceEnumerator 
+	---------------
+	Altered class:
+	class AudioDeviceEnumerator implements Enumeration
+	altered to
+	class AudioDeviceEnumerator implements Iterator<AudioDevice>
+	
+	
+	WakeupCriteriaEnumerator
+	---------------
+	Altered class:
+	class WakeupCriteriaEnumerator implements Enumeration 
+	altered to
+	class WakeupCriteriaEnumerator implements Iterator<WakeupCriterion>
+	
+	
+ 	Behavior
+    ---------------
+    Altered methods:
+	public abstract void processStimulus(Enumeration criteria);
+	altered to
+	public abstract void processStimulus(Iterator<WakeupCriterion>  criteria);
+	
+	
+	GraphicsContext3D
+    ---------------
+    Altered methods:
+	public Enumeration<Light> getAllLights()
+	altered to
+	public Iterator<Light> getAllLights()
+	public Enumeration<Sound> getAllSounds()
+	altered to
+	public Iterator<Sound> getAllSounds()
+	
+	
+	Group
+    ---------------
+    Altered methods:
+	public Enumeration<Node> getAllChildren()
+	altered to
+	public Iterator<Node> getAllChildren()
+	
+	
+	Light
+    ---------------
+    Altered methods:
+	public Enumeration<Group> getAllScopes()  
+	altered to
+	public Iterator<Group> getAllScopes() 
+	
+	
+	Locale
+    ---------------
+    Altered methods:
+	public Enumeration getAllBranchGraphs() 
+	altered to
+	public Iterator<BranchGroup> getAllBranchGraphs()
+	
+	
+	LOD
+    ---------------
+    Altered methods:
+	public Enumeration getAllSwitches() 
+	altered to
+	public Iterator<Switch> getAllSwitches()
+	
+	
+	ModelClip
+    ---------------
+    Altered methods:
+	public Enumeration<Group> getAllScopes()
+	altered to
+	public Iterator<Group> getAllScopes()
+	
+	
+	PhysicalEnvironment
+    ---------------
+    Altered methods:
+	public Enumeration<InputDevice> getAllInputDevices()
+	altered to
+	public Iterator<InputDevice> getAllInputDevices()
+		
+	
+	Shape3D
+    ---------------
+    Altered methods:
+	public Enumeration getAllGeometries()
+	altered to
+	public Iterator<Geometry> getAllGeometries()
+	
+	
+	View
+    ---------------
+    Altered methods:
+	public Enumeration<Canvas3D> getAllCanvas3Ds()
+	altered to
+	public Iterator<Canvas3D> getAllCanvas3Ds()
+	
+	
+	ViewSpecificGroup 
+    ---------------
+    Altered methods:
+	public Enumeration<View> getAllViews()
+	altered to
+	public Iterator<View> getAllViews()
+	
+	
+	VirtualUniverse 
+    ---------------
+    Altered methods:
+	public Enumeration<Locale> getAllLocales()
+	altered to
+	public Iterator<Locale> getAllLocales()
+	
+		
+	WakeupCondition 
+    ---------------
+    Altered methods:
+	public Enumeration allElements()
+	altered to
+	public Iterator<WakeupCriterion> allElements()
+	public Enumeration triggeredElements()
+	altered to
+	public Iterator<WakeupCriterion> triggeredElements()
+	
+	

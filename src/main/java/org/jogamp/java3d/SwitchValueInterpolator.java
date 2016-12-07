@@ -26,7 +26,7 @@
 
 package org.jogamp.java3d;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 /**
  * SwitchValueInterpolator behavior.  This class defines a
@@ -155,11 +155,11 @@ public class SwitchValueInterpolator extends Interpolator {
      * It maps the alpha value that corresponds to the current time
      * into a child index value and updates the specified Switch node
      * with this new child index value.
-     * @param criteria an enumeration of the criteria that triggered
+     * @param criteria an iterator of the criteria that triggered
      * this stimulus
      */
     @Override
-    public void processStimulus(Enumeration criteria) {
+    public void processStimulus(Iterator<WakeupCriterion> criteria) {
 	// Handle stimulus
 	WakeupCriterion criterion = passiveWakeupCriterion;
 

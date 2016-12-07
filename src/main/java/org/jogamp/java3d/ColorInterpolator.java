@@ -26,7 +26,7 @@
 
 package org.jogamp.java3d;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.jogamp.vecmath.Color3f;
 
@@ -168,11 +168,11 @@ public class ColorInterpolator extends Interpolator {
      * or specular color (or both the ambient and diffuse color) of
      * the specified target Material object with this new color value.
      *
-     * @param criteria an enumeration of the criteria that caused the
+     * @param criteria an iterator of the criteria that caused the
      * stimulus
      */
     @Override
-    public void processStimulus(Enumeration criteria) {
+    public void processStimulus(Iterator<WakeupCriterion>  criteria) {
 
 	// Handle stimulus
 	WakeupCriterion criterion = passiveWakeupCriterion;

@@ -32,7 +32,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 
 import org.jogamp.vecmath.Point2f;
 import org.jogamp.vecmath.Point3d;
@@ -525,9 +526,10 @@ class SoundScheduler extends J3dStructure {
 	}
 	else if (node instanceof MediaContainerRetained) {
 	    int listSize = ((Integer)m.args[2]).intValue();
-	    ArrayList userList = (ArrayList)m.args[3];
-	    for (int i = 0; i < listSize; i++) {
-		SoundRetained sound = (SoundRetained)userList.get(i);
+	    LinkedHashSet<SoundRetained> userList = (LinkedHashSet<SoundRetained>)m.args[3];
+	    for (SoundRetained sound : userList) {
+	    //for (int i = 0; i < listSize; i++) {
+		//SoundRetained sound = userList.get(i);
 		if (sound != null) {
 		    loadSound(sound, true);
 		    if (debugFlag)
@@ -1048,15 +1050,15 @@ class SoundScheduler extends J3dStructure {
 		nRetainedSounds++;
 	    }
 	    // XXXX: sync canvases
-		Enumeration<Canvas3D> canvases = view.getAllCanvas3Ds();
-	    while (canvases.hasMoreElements()) {
-			Canvas3D canvas = canvases.nextElement();
+		Iterator<Canvas3D> canvases = view.getAllCanvas3Ds();
+	    while (canvases.hasNext()) {
+			Canvas3D canvas = canvases.next();
 		GraphicsContext3D graphicsContext = canvas.getGraphicsContext3D();
-		Enumeration nonretainedSounds = graphicsContext.getAllSounds();
-		while (nonretainedSounds.hasMoreElements()) {
+		Iterator<Sound> nonretainedSounds = graphicsContext.getAllSounds();
+		while (nonretainedSounds.hasNext()) {
 		    if (debugFlag)
 			debugPrint(" prioritizeSound , get non-retained sound");
-		    Sound sound = (Sound)nonretainedSounds.nextElement();
+		    Sound sound = (Sound)nonretainedSounds.next();
 		    if (sound == null)  {
 			if (debugFlag)
 			    debugPrint(" prioritizeSound , sound element is null");

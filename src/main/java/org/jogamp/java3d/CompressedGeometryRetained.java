@@ -35,6 +35,7 @@ import org.jogamp.vecmath.Point3d;
  * hardware support becomes available, increased rendering performance
  * will also result from the use of compressed geometry.
  */
+@Deprecated
 class CompressedGeometryRetained extends GeometryRetained {
 
     // If not in by-reference mode, a 48-byte header as defined by the
@@ -57,7 +58,7 @@ class CompressedGeometryRetained extends GeometryRetained {
     private static final int HEADER_BUFFER_DATA_OFFSET = 4 ;
 
     // The OpenGL compressed geometry extensions use bits instead of
-    // enumerations to represent the type of compressed geometry.
+    // iterators to represent the type of compressed geometry.
     static final byte TYPE_POINT = 1 ;
     static final byte TYPE_LINE = 2 ;
     static final byte TYPE_TRIANGLE = 4 ;

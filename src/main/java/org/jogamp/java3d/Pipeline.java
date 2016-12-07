@@ -156,7 +156,7 @@ public Pipeline run() {
         case JOGL:
             return "OpenGL";
         case JOGL2ES2:
-            return "OpenGL";
+            return "OpenGLES2";
         case NOOP:
             return "None";
         default:

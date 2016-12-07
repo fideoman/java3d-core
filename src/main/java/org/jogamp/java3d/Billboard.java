@@ -26,7 +26,7 @@
 
 package org.jogamp.java3d;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.jogamp.vecmath.AxisAngle4d;
 import org.jogamp.vecmath.Point3d;
@@ -306,11 +306,11 @@ public class Billboard extends Behavior {
 
     /**
      * Process stimulus method that computes appropriate transform.
-     * @param criteria an enumeration of the criteria that caused the
+     * @param criteria an iterator of the criteria that caused the
      * stimulus
      */
     @Override
-    public void processStimulus(Enumeration criteria) {
+    public void processStimulus(Iterator<WakeupCriterion> criteria) {
         double angle = 0.0;
         double sign;
 

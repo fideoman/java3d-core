@@ -35,7 +35,7 @@ package org.jogamp.java3d;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1917,8 +1917,8 @@ private static String getProperty(final String prop) {
 
 	// remove all InputDeviceScheduler if this is the last View
 	ArrayList<PhysicalEnvironment> list = new ArrayList<PhysicalEnvironment>();
-	for (Enumeration<PhysicalEnvironment> e = PhysicalEnvironment.physicalEnvMap.keys(); e.hasMoreElements();) {
-		PhysicalEnvironment phyEnv = e.nextElement();
+	for (Iterator<PhysicalEnvironment> e = PhysicalEnvironment.physicalEnvMap.keySet().iterator(); e.hasNext();) {
+		PhysicalEnvironment phyEnv = e.next();
 		InputDeviceScheduler sched = PhysicalEnvironment.physicalEnvMap.get(phyEnv);
 		boolean phyEnvHasUser = false;
 		for (int i = 0; i < phyEnv.users.size(); i++) {
@@ -1952,9 +1952,9 @@ private static String getProperty(final String prop) {
 				 "MC: Destroy all Renderers");
 	    }
 	    // remove all Renderers if this is the last View
-	    for (Enumeration<Renderer> e = Screen3D.deviceRendererMap.elements();
-		 e.hasMoreElements(); ) {
-		Renderer rdr = e.nextElement();
+	    for (Iterator<Renderer> e = Screen3D.deviceRendererMap.values().iterator();
+		 e.hasNext(); ) {
+		Renderer rdr = e.next();
 		Screen3D scr;
 
 		rendererCleanupArgs[2] = REMOVEALLCTXS_CLEANUP;
@@ -1983,9 +1983,9 @@ private static String getProperty(final String prop) {
 	    }
 
 	    // cleanup ThreadData corresponds to the view in renderer
-	    for (Enumeration<Renderer> e = Screen3D.deviceRendererMap.elements();
-		 e.hasMoreElements(); ) {
-	    	e.nextElement().cleanup();
+	    for (Iterator<Renderer> e = Screen3D.deviceRendererMap.values().iterator();
+		 e.hasNext(); ) {
+	    	e.next().cleanup();
 	    }
 	    // We have to reuse renderer even though MC exit
 	    // see bug 4363279
@@ -1993,9 +1993,9 @@ private static String getProperty(final String prop) {
 
 	} else {
 	    // cleanup ThreadData corresponds to the view in renderer
-	    for (Enumeration<Renderer> e = Screen3D.deviceRendererMap.elements();
-		 e.hasMoreElements(); ) {
-		e.nextElement().cleanupView();
+	    for (Iterator<Renderer> e = Screen3D.deviceRendererMap.values().iterator();
+		 e.hasNext(); ) {
+		e.next().cleanupView();
 	    }
 	}
 
@@ -2732,9 +2732,9 @@ private static String getProperty(final String prop) {
 
 	thread = null;
 
-	for (Enumeration<Renderer> e = Screen3D.deviceRendererMap.elements();
-	     e.hasMoreElements(); ) {
-	    Renderer rdr = e.nextElement();
+	for (Iterator<Renderer> e = Screen3D.deviceRendererMap.values().iterator();
+	     e.hasNext(); ) {
+	    Renderer rdr = e.next();
 	    thread = rdr.getThreadData(null, null);
 	    requestRenderWorkThreads.add(thread);
 	    thread.threadOpts = J3dThreadData.CONT_THREAD;

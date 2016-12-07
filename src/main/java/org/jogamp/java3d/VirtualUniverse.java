@@ -27,7 +27,7 @@
 package org.jogamp.java3d;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -358,12 +358,12 @@ ArrayList<Integer> viewIdFreeList = new ArrayList<Integer>();
 
 
 /**
- * Returns the enumeration object of all locales in this virtual universe.
+ * Returns the iterator object of all locales in this virtual universe.
  *
- * @return the enumeration object
+ * @return the iterator object
  */
-public Enumeration<Locale> getAllLocales() {
-	return this.listOfLocales.elements();
+public Iterator<Locale> getAllLocales() {
+	return this.listOfLocales.iterator();
 }
 
     /**
@@ -681,9 +681,9 @@ void disableFocusEvents() {
 	for (int i = 0; i < vps.length; i++) {
 		View[] views = vps[i].getViewList();
 		for (int j = views.length - 1; j >= 0; j--) {
-			Enumeration<Canvas3D> cvs = views[j].getAllCanvas3Ds();
-			while (cvs.hasMoreElements()) {
-				Canvas3D cv = cvs.nextElement();
+			Iterator<Canvas3D> cvs = views[j].getAllCanvas3Ds();
+			while (cvs.hasNext()) {
+				Canvas3D cv = cvs.next();
 				// offscreen canvas does not have event catcher
 				if (cv.eventCatcher != null)
 					cv.eventCatcher.disableFocusEvents();
@@ -699,9 +699,9 @@ void enableFocusEvents() {
 	for (int i = 0; i < vps.length; i++) {
 		View[] views = vps[i].getViewList();
 		for (int j = views.length - 1; j >= 0; j--) {
-			Enumeration<Canvas3D> cvs = views[j].getAllCanvas3Ds();
-			while (cvs.hasMoreElements()) {
-				Canvas3D cv = cvs.nextElement();
+			Iterator<Canvas3D> cvs = views[j].getAllCanvas3Ds();
+			while (cvs.hasNext()) {
+				Canvas3D cv = cvs.next();
 				// offscreen canvas does not have event catcher
 				if (cv.eventCatcher != null)
 					cv.eventCatcher.enableFocusEvents();
@@ -717,9 +717,9 @@ void disableKeyEvents() {
 	for (int i = 0; i < vps.length; i++) {
 		View[] views = vps[i].getViewList();
 		for (int j = views.length - 1; j >= 0; j--) {
-			Enumeration<Canvas3D> cvs = views[j].getAllCanvas3Ds();
-			while (cvs.hasMoreElements()) {
-				Canvas3D cv = cvs.nextElement();
+			Iterator<Canvas3D> cvs = views[j].getAllCanvas3Ds();
+			while (cvs.hasNext()) {
+				Canvas3D cv = cvs.next();
 				// offscreen canvas does not have event catcher
 				if (cv.eventCatcher != null)
 					cv.eventCatcher.disableKeyEvents();
@@ -735,9 +735,9 @@ void enableKeyEvents() {
 	for (int i = 0; i < vps.length; i++) {
 		View[] views = vps[i].getViewList();
 		for (int j = views.length - 1; j >= 0; j--) {
-			Enumeration<Canvas3D> cvs = views[j].getAllCanvas3Ds();
-			while (cvs.hasMoreElements()) {
-				Canvas3D cv = cvs.nextElement();
+			Iterator<Canvas3D> cvs = views[j].getAllCanvas3Ds();
+			while (cvs.hasNext()) {
+				Canvas3D cv = cvs.next();
 				// offscreen canvas does not have event catcher
 				if (cv.eventCatcher != null)
 					cv.eventCatcher.enableKeyEvents();
@@ -753,9 +753,9 @@ void disableMouseEvents() {
 	for (int i = 0; i < vps.length; i++) {
 		View[] views = vps[i].getViewList();
 		for (int j = views.length - 1; j >= 0; j--) {
-			Enumeration<Canvas3D> cvs = views[j].getAllCanvas3Ds();
-			while (cvs.hasMoreElements()) {
-				Canvas3D cv = cvs.nextElement();
+			Iterator<Canvas3D> cvs = views[j].getAllCanvas3Ds();
+			while (cvs.hasNext()) {
+				Canvas3D cv = cvs.next();
 				// offscreen canvas does not have event catcher
 				if (cv.eventCatcher != null)
 					cv.eventCatcher.disableMouseEvents();
@@ -771,9 +771,9 @@ void enableMouseEvents() {
 	for (int i = 0; i < vps.length; i++) {
 		View[] views = vps[i].getViewList();
 		for (int j = views.length - 1; j >= 0; j--) {
-			Enumeration<Canvas3D> cvs = views[j].getAllCanvas3Ds();
-			while (cvs.hasMoreElements()) {
-				Canvas3D cv = cvs.nextElement();
+			Iterator<Canvas3D> cvs = views[j].getAllCanvas3Ds();
+			while (cvs.hasNext()) {
+				Canvas3D cv = cvs.next();
 				// offscreen canvas does not have event catcher
 				if (cv.eventCatcher != null)
 					cv.eventCatcher.enableMouseEvents();
@@ -789,9 +789,9 @@ void disableMouseMotionEvents() {
 	for (int i = 0; i < vps.length; i++) {
 		View[] views = vps[i].getViewList();
 		for (int j = views.length - 1; j >= 0; j--) {
-			Enumeration<Canvas3D> cvs = views[j].getAllCanvas3Ds();
-			while (cvs.hasMoreElements()) {
-				Canvas3D cv = cvs.nextElement();
+			Iterator<Canvas3D> cvs = views[j].getAllCanvas3Ds();
+			while (cvs.hasNext()) {
+				Canvas3D cv = cvs.next();
 				// offscreen canvas does not have event catcher
 				if (cv.eventCatcher != null)
 					cv.eventCatcher.disableMouseMotionEvents();
@@ -807,9 +807,9 @@ void enableMouseMotionEvents() {
 	for (int i = 0; i < vps.length; i++) {
 		View[] views = vps[i].getViewList();
 		for (int j = views.length - 1; j >= 0; j--) {
-			Enumeration<Canvas3D> cvs = views[j].getAllCanvas3Ds();
-			while (cvs.hasMoreElements()) {
-				Canvas3D cv = cvs.nextElement();
+			Iterator<Canvas3D> cvs = views[j].getAllCanvas3Ds();
+			while (cvs.hasNext()) {
+				Canvas3D cv = cvs.next();
 				// offscreen canvas does not have event catcher
 				if (cv.eventCatcher != null)
 					cv.eventCatcher.enableMouseMotionEvents();
@@ -825,9 +825,9 @@ void disableMouseWheelEvents() {
 	for (int i = 0; i < vps.length; i++) {
 		View[] views = vps[i].getViewList();
 		for (int j = views.length - 1; j >= 0; j--) {
-			Enumeration<Canvas3D> cvs = views[j].getAllCanvas3Ds();
-			while (cvs.hasMoreElements()) {
-				Canvas3D cv = cvs.nextElement();
+			Iterator<Canvas3D> cvs = views[j].getAllCanvas3Ds();
+			while (cvs.hasNext()) {
+				Canvas3D cv = cvs.next();
 				// offscreen canvas does not have event catcher
 				if (cv.eventCatcher != null)
 					cv.eventCatcher.disableMouseWheelEvents();
@@ -843,9 +843,9 @@ void enableMouseWheelEvents() {
 	for (int i = 0; i < vps.length; i++) {
 		View[] views = vps[i].getViewList();
 		for (int j = views.length - 1; j >= 0; j--) {
-			Enumeration<Canvas3D> cvs = views[j].getAllCanvas3Ds();
-			while (cvs.hasMoreElements()) {
-				Canvas3D cv = cvs.nextElement();
+			Iterator<Canvas3D> cvs = views[j].getAllCanvas3Ds();
+			while (cvs.hasNext()) {
+				Canvas3D cv = cvs.next();
 				// offscreen canvas does not have event catcher
 				if (cv.eventCatcher != null)
 					cv.eventCatcher.enableMouseWheelEvents();
@@ -886,10 +886,10 @@ void enableMouseWheelEvents() {
      * attach to it.
      */
     boolean isEmpty() {
-	Enumeration<Locale> elm = listOfLocales.elements();
+	Iterator<Locale> elm = listOfLocales.iterator();
 
-	while (elm.hasMoreElements()) {
-		Locale loc = elm.nextElement();
+	while (elm.hasNext()) {
+		Locale loc = elm.next();
 	    if (!loc.branchGroups.isEmpty()) {
 		return false;
 	    }

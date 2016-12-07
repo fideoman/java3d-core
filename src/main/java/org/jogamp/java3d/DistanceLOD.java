@@ -26,7 +26,7 @@
 
 package org.jogamp.java3d;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.jogamp.vecmath.Point3f;
 
@@ -171,11 +171,11 @@ public class DistanceLOD extends LOD {
 
     /**
      * Process stimulus method that computes appropriate level of detail.
-     * @param criteria an enumeration of the criteria that caused the
+     * @param criteria an iterator of the criteria that caused the
      * stimulus
      */
     @Override
-    public void processStimulus(Enumeration criteria) {
+    public void processStimulus(Iterator<WakeupCriterion>  criteria) {
 
 
 	// compute distance in virtual world

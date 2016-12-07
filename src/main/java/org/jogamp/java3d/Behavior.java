@@ -27,7 +27,7 @@
 package org.jogamp.java3d;
 
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 /**
  * The Behavior leaf node provides a framework for adding user-defined
@@ -133,7 +133,7 @@ import java.util.Enumeration;
  * <P>
  * <UL>
  * <LI>Code to decode and extract references from the WakeupCondition
- * enumeration that caused the object's awakening.</LI>
+ * iterator that caused the object's awakening.</LI>
  * <LI>Code to perform the manipulations associated with the
  * WakeupCondition</LI>
  * <LI>Code to establish this behavior's new WakeupCondition</LI>
@@ -150,7 +150,7 @@ import java.util.Enumeration;
  * node provides the Java 3D behavior scheduler with a WakeupCondition
  * object. When that object's WakeupCondition has been satisfied, the
  * behavior scheduler hands that same WakeupCondition back to the
- * Behavior via an enumeration.
+ * Behavior via an iterator.
  *
  * <P>
  * <b>WakeupCriterion Object</b>
@@ -238,10 +238,10 @@ public abstract class Behavior extends Leaf {
      * <br>
      * NOTE: Applications should <i>not</i> call this method.  It is called
      * by the Java 3D behavior scheduler.
-     * @param criteria an enumeration of triggered wakeup criteria for this
+     * @param criteria an iterator of triggered wakeup criteria for this
      * behavior
      */
-    public abstract void processStimulus(Enumeration criteria);
+    public abstract void processStimulus(Iterator<WakeupCriterion>  criteria);
 
     /**
      * Set the Behavior's scheduling region to the specified bounds.
