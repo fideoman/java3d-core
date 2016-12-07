@@ -29,6 +29,7 @@ package org.jogamp.java3d;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -40,6 +41,8 @@ import java.util.Map;
 class ShaderAttributeSetRetained extends NodeComponentRetained {
 
 private Map<String, ShaderAttributeRetained> attrs = new HashMap<String, ShaderAttributeRetained>();
+	// to avoid new Iterator calls when iterating
+	private ArrayList<ShaderAttributeRetained> attrsValues = new ArrayList<ShaderAttributeRetained>();
 
     // Lock used for synchronization of live state
     Object liveStateLock = new Object();
@@ -72,6 +75,7 @@ private Map<String, ShaderAttributeRetained> attrs = new HashMap<String, ShaderA
 	    // System.err.println("attrName is " + sAttr.attrName + " attr.Retained is "+ sAttr );
 	    assert(sAttr != null);
 	    attrs.put(sAttr.attrName, sAttr);
+	    attrsValues.add(sAttr);
 
 	    if (source.isLive()) {
 		sAttr.setLive(inBackgroundGroup, refCount);
@@ -93,7 +97,11 @@ private Map<String, ShaderAttributeRetained> attrs = new HashMap<String, ShaderA
      * not set and this object is part of live or compiled scene graph
      */
     ShaderAttribute get(String attrName) {
-	return (ShaderAttribute)attrs.get(attrName).source;
+    	ShaderAttributeRetained sAttr = attrs.get(attrName);
+    	if(sAttr!=null)
+    		return (ShaderAttribute)attrs.get(attrName).source;
+    	else
+    		return null;
     }
 
     /**
@@ -107,6 +115,7 @@ private Map<String, ShaderAttributeRetained> attrs = new HashMap<String, ShaderA
 	synchronized(liveStateLock) {
 		ShaderAttributeRetained sAttr = attrs.get(attrName);
 	    attrs.remove(attrName);
+	    attrsValues.remove(sAttr);
 	    if (source.isLive()) {
 		sAttr.clearLive(refCount);
 		sAttr.removeMirrorUsers(this);
@@ -131,7 +140,7 @@ private Map<String, ShaderAttributeRetained> attrs = new HashMap<String, ShaderA
 	synchronized(liveStateLock) {
 	    String attrName = attr.getAttributeName();
 	    if (attrs.get(attrName) == attr.retained) {
-		attrs.remove(attrName);
+	    	attrsValues.remove(attrs.remove(attrName));
 		if (source.isLive()) {
 		    ((ShaderAttributeRetained)attr.retained).clearLive(refCount);
 		    ((ShaderAttributeRetained)attr.retained).removeMirrorUsers(this);
@@ -149,7 +158,7 @@ private Map<String, ShaderAttributeRetained> attrs = new HashMap<String, ShaderA
      */
     void clear() {
 	synchronized(liveStateLock) {
-	    attrs.clear();
+	   
 	    if(source.isLive()) {
 		ShaderAttributeRetained[] sAttrs = new ShaderAttributeRetained[attrs.size()];
 			sAttrs = attrs.values().toArray(sAttrs);
@@ -159,6 +168,8 @@ private Map<String, ShaderAttributeRetained> attrs = new HashMap<String, ShaderA
 		}
 		sendMessage(ShaderConstants.ATTRIBUTE_SET_CLEAR, null);
 	    }
+	    attrs.clear();
+	    attrsValues.clear();
 	}
     }
 
@@ -198,6 +209,11 @@ private Map<String, ShaderAttributeRetained> attrs = new HashMap<String, ShaderA
 Map<String, ShaderAttributeRetained> getAttrs() {
 	return attrs;
 }
+
+List< ShaderAttributeRetained> getAttrValues() {
+	return attrsValues;
+}
+
 
     @Override
     void setLive(boolean backgroundGroup, int refCount) {
@@ -295,6 +311,7 @@ Map<String, ShaderAttributeRetained> getAttrs() {
 	    ShaderAttributeRetained mirrorSA = (ShaderAttributeRetained) sAttrs[i].mirror;
 	    assert(mirrorSA != null);
 	    ((ShaderAttributeSetRetained)mirror).attrs.put(mirrorSA.attrName, mirrorSA);
+	    ((ShaderAttributeSetRetained)mirror).attrsValues.add(mirrorSA);
 	}
     }
 
@@ -313,14 +330,17 @@ Map<String, ShaderAttributeRetained> getAttrs() {
 	    ShaderAttributeRetained mirrorSA = (ShaderAttributeRetained)value;
  	    assert(mirrorSA != null);
 	    ((ShaderAttributeSetRetained)mirror).attrs.put(mirrorSA.attrName, mirrorSA);
+	    ((ShaderAttributeSetRetained)mirror).attrsValues.add(mirrorSA);
 	}
 	else if((component & ShaderConstants.ATTRIBUTE_SET_REMOVE) != 0) {
 	    // System.err.println("     -- ATTRIBUTE_SET_REMOVE");
-	    ((ShaderAttributeSetRetained)mirror).attrs.remove((String)value);
+		 ((ShaderAttributeSetRetained)mirror).attrsValues.remove(((ShaderAttributeSetRetained)mirror).attrs.remove((String)value));
+	    
 	}
 	else if((component & ShaderConstants.ATTRIBUTE_SET_CLEAR) != 0) {
 	    // System.err.println("     -- ATTRIBUTE_SET_CLEAR");
 	    ((ShaderAttributeSetRetained)mirror).attrs.clear();
+	    ((ShaderAttributeSetRetained)mirror).attrsValues.clear();
 	}
 	else {
 	    assert(false);
