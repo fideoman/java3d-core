@@ -303,15 +303,15 @@ public class Jogl2es2Context extends JoglContext
 			polygonOffsetFactor = -1;
 			polygonOffset = -1;
 			ignoreVertexColors = -1;
-			glLightModelambient.set(-999f, -999f, -999f, -999f);
-			objectColor.set(-999f, -999f, -999f, -999f);
+			glLightModelambient.set(Float.NEGATIVE_INFINITY, -999f, -999f, -999f);
+			objectColor.set(Float.NEGATIVE_INFINITY, -999f, -999f, -999f);
 			transparencyAlpha = -1;
-			textureTransform.setIdentity();
-			modelMatrix.setIdentity();
-			glModelViewMatrix.setIdentity();
-			glModelViewMatrixInverse.setIdentity();
-			glModelViewProjectionMatrix.setIdentity();
-			glNormalMatrix.setIdentity();
+			textureTransform.m00 = Double.NEGATIVE_INFINITY;
+			modelMatrix.m00 = Double.NEGATIVE_INFINITY;
+			glModelViewMatrix.m00 = Double.NEGATIVE_INFINITY;
+			glModelViewMatrixInverse.m00 = Double.NEGATIVE_INFINITY;
+			glModelViewProjectionMatrix.m00 = Double.NEGATIVE_INFINITY;
+			glNormalMatrix.m00 = Double.NEGATIVE_INFINITY;
 			alphaTestEnabled = false;
 			alphaTestFunction = -1;
 			alphaTestValue = -99f;
@@ -320,8 +320,7 @@ public class Jogl2es2Context extends JoglContext
 			glFrontMaterial.clear();
 			for (int i = 0; i < MAX_LIGHTS; i++)
 			{
-				if (glLightSource[i] != null)
-					glLightSource[i].clear();
+				glLightSource[i] = null;
 			}
 		}
 	}
@@ -392,21 +391,11 @@ public class Jogl2es2Context extends JoglContext
 		public void clear()
 		{
 			lightEnabled = -1;
-			ambient.set(-999f, -999f, -999f, -999f);
-			diffuse.set(-999f, -999f, -999f, -999f);
-			emission.set(-999f, -999f, -999f);
-			specular.set(-999f, -999f, -999f);
+			ambient.set(Float.NEGATIVE_INFINITY, -999f, -999f, -999f);
+			diffuse.set(Float.NEGATIVE_INFINITY, -999f, -999f, -999f);
+			emission.set(Float.NEGATIVE_INFINITY, -999f, -999f);
+			specular.set(Float.NEGATIVE_INFINITY, -999f, -999f);
 			shininess = -99;
-		}
-
-		public void set(glFrontMaterial ogfm)
-		{
-			lightEnabled = ogfm.lightEnabled;
-			ambient.set(ogfm.ambient);
-			diffuse.set(ogfm.diffuse);
-			emission.set(ogfm.emission);
-			specular.set(ogfm.specular);
-			shininess = ogfm.shininess;
 		}
 
 		@Override
@@ -559,7 +548,7 @@ public class Jogl2es2Context extends JoglContext
 		public void clear()
 		{
 			fogEnabled = -1;
-			expColor.set(-999f, -999f, -999f);
+			expColor.set(Float.NEGATIVE_INFINITY, -999f, -999f);
 			expDensity = -99;
 			linearColor.set(-999f, -999f, -999f);
 			linearStart = -99;
