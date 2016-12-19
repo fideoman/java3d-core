@@ -3127,7 +3127,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 
 		// the front material structure
-		if (locs.glFrontMaterial.present())
+		if (locs.glFrontMaterial.present)
 		{
 			//note != not equals
 			if (locs.glFrontMaterial.lightEnabled != -1 && (shaderProgramId != ctx.prevShaderProgram
@@ -3331,7 +3331,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		}
 
 		// Fog
-		if (locs.fogData.present())
+		if (locs.fogData.present && locs.fogData.fogEnabled != -1)
 		{
 			if (!MINIMISE_NATIVE_CALLS_FFP || shaderProgramId != ctx.prevShaderProgram
 					|| ctx.gl_state.fogData.fogEnabled != ctx.fogData.fogEnabled)
@@ -3416,6 +3416,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				locs.fogData.linearColor = gl.glGetUniformLocation(shaderProgramId, "fogData.linearColor");
 				locs.fogData.linearStart = gl.glGetUniformLocation(shaderProgramId, "fogData.linearStart");
 				locs.fogData.linearEnd = gl.glGetUniformLocation(shaderProgramId, "fogData.linearEnd");
+				locs.fogData.setPresent();
 
 				locs.glFrontMaterial.lightEnabled = gl.glGetUniformLocation(shaderProgramId, "glFrontMaterial.lightEnabled");
 				locs.glFrontMaterial.ambient = gl.glGetUniformLocation(shaderProgramId, "glFrontMaterial.ambient");
@@ -3423,14 +3424,19 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				locs.glFrontMaterial.emission = gl.glGetUniformLocation(shaderProgramId, "glFrontMaterial.emission");
 				locs.glFrontMaterial.specular = gl.glGetUniformLocation(shaderProgramId, "glFrontMaterial.specular");
 				locs.glFrontMaterial.shininess = gl.glGetUniformLocation(shaderProgramId, "glFrontMaterial.shininess");
+				locs.glFrontMaterial.setPresent();
 
 				locs.numberOfLights = gl.glGetUniformLocation(shaderProgramId, "numberOfLights");
 
 				// lights, notice the vertex attribute is made of a string concat
+				// notice we stop once the light loc is not found, as that is the max the shader will accept
 				for (int i = 0; i < locs.glLightSource.length; i++)
 				{
+					int position = gl.glGetUniformLocation(shaderProgramId, "glLightSource[" + i + "].position");
+					if (position != -1)
+					{
 					locs.glLightSource[i] = new glLightSourceLocs();
-					locs.glLightSource[i].position = gl.glGetUniformLocation(shaderProgramId, "glLightSource[" + i + "].position");
+						locs.glLightSource[i].position = position;
 					locs.glLightSource[i].diffuse = gl.glGetUniformLocation(shaderProgramId, "glLightSource[" + i + "].diffuse");
 					locs.glLightSource[i].specular = gl.glGetUniformLocation(shaderProgramId, "glLightSource[" + i + "].specular");
 					locs.glLightSource[i].constantAttenuation = gl.glGetUniformLocation(shaderProgramId,
@@ -3440,9 +3446,15 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					locs.glLightSource[i].quadraticAttenuation = gl.glGetUniformLocation(shaderProgramId,
 							"glLightSource[" + i + "].quadraticAttenuation");
 					locs.glLightSource[i].spotCutoff = gl.glGetUniformLocation(shaderProgramId, "glLightSource[" + i + "].spotCutoff");
-					locs.glLightSource[i].spotExponent = gl.glGetUniformLocation(shaderProgramId, "glLightSource[" + i + "].spotExponent");
+						locs.glLightSource[i].spotExponent = gl.glGetUniformLocation(shaderProgramId,
+								"glLightSource[" + i + "].spotExponent");
 					locs.glLightSource[i].spotDirection = gl.glGetUniformLocation(shaderProgramId,
 							"glLightSource[" + i + "].spotDirection");
+				}
+					else
+					{
+						break;
+					}
 				}
 
 				///////ATTRIBUTES!!!!!!!!///////////////////

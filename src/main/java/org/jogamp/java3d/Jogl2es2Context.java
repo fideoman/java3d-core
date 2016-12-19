@@ -416,6 +416,7 @@ public class Jogl2es2Context extends JoglContext
 
 	public static class glFrontMaterialLocs
 	{
+		public boolean present = false;
 		public int lightEnabled = -1;
 		public int ambient = -1;
 		public int diffuse = -1;
@@ -423,9 +424,9 @@ public class Jogl2es2Context extends JoglContext
 		public int specular = -1;
 		public int shininess = -1;
 
-		public boolean present()
+		public void setPresent()
 		{
-			return lightEnabled != -1 || ambient != -1 || diffuse != -1 || emission != -1 || specular != -1 || shininess != -1;
+			present = lightEnabled != -1 || ambient != -1 || diffuse != -1 || emission != -1 || specular != -1 || shininess != -1;
 		}
 	}
 	//	struct lightSource
@@ -517,12 +518,6 @@ public class Jogl2es2Context extends JoglContext
 		public int spotCutoff = -1;
 		public int spotExponent = -1;
 		public int spotDirection = -1;
-
-		public boolean present()
-		{
-			return position != -1 || diffuse != -1 || specular != -1 || constantAttenuation != -1 || linearAttenuation != -1
-					|| quadraticAttenuation != -1 || spotCutoff != -1 || spotExponent != -1 || spotDirection != -1;
-		}
 	}
 
 	// in the shader as follows
@@ -583,6 +578,7 @@ public class Jogl2es2Context extends JoglContext
 
 	public static class fogDataLocs
 	{
+		public boolean present = false;
 		public int fogEnabled = -1;
 		public int expColor = -1;
 		public int expDensity = -1;
@@ -590,9 +586,9 @@ public class Jogl2es2Context extends JoglContext
 		public int linearStart = -1;
 		public int linearEnd = -1;
 
-		public boolean present()
+		public void setPresent()
 		{
-			return fogEnabled != -1 || expColor != -1 || expDensity != -1 || linearColor != -1 || linearStart != -1 || linearEnd != -1;
+			present = fogEnabled != -1 || expColor != -1 || expDensity != -1 || linearColor != -1 || linearStart != -1 || linearEnd != -1;
 		}
 	}
 }
