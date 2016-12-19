@@ -326,7 +326,7 @@ class VersionInfo extends Object {
      * @return the implementation version string
      */
     static String getVersionFull() {
-	return VERSION;
+	return VERSION_FULL;
     }
 
     /**
