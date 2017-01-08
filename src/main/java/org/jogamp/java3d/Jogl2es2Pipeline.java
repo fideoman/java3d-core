@@ -2932,7 +2932,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		{
 			if (!MINIMISE_NATIVE_CALLS_FFP || (shaderProgramId != ctx.prevShaderProgram))
 			{
-				gl.glUniformMatrix4fv(locs.glProjectionMatrix, 1, true, ctx.matrixUtil.toArray(ctx.currentProjMat), 0);
+				if (gl.isGL2ES3())
+					gl.glUniformMatrix4fv(locs.glProjectionMatrix, 1, true, ctx.matrixUtil.toArray(ctx.currentProjMat), 0);
+				else
+					gl.glUniformMatrix4fv(locs.glProjectionMatrix, 1, false,
+							Jogl2es2MatrixUtil.transposeInPlace(ctx.matrixUtil.toArray(ctx.currentProjMat)), 0);
+
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 			}
@@ -2952,7 +2957,11 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 					System.err.println("" + e);
 				}
 
-				gl.glUniformMatrix4fv(locs.glProjectionMatrixInverse, 1, true, ctx.matrixUtil.toArray(ctx.currentProjMatInverse), 0);
+				if (gl.isGL2ES3())
+					gl.glUniformMatrix4fv(locs.glProjectionMatrixInverse, 1, true, ctx.matrixUtil.toArray(ctx.currentProjMatInverse), 0);
+				else
+					gl.glUniformMatrix4fv(locs.glProjectionMatrixInverse, 1, false,
+							Jogl2es2MatrixUtil.transposeInPlace(ctx.matrixUtil.toArray(ctx.currentProjMatInverse)), 0);
 
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
@@ -2973,7 +2982,13 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			if (!MINIMISE_NATIVE_CALLS_FFP
 					|| (shaderProgramId != ctx.prevShaderProgram || ctx.gl_state.modelMatrix.m00 == Double.NEGATIVE_INFINITY))
 			{
-				gl.glUniformMatrix4fv(locs.glModelMatrix, 1, true, ctx.matrixUtil.toArray(ctx.currentModelMat), 0);
+
+				if (gl.isGL2ES3())
+					gl.glUniformMatrix4fv(locs.glModelMatrix, 1, true, ctx.matrixUtil.toArray(ctx.currentModelMat), 0);
+				else
+					gl.glUniformMatrix4fv(locs.glModelMatrix, 1, false,
+							Jogl2es2MatrixUtil.transposeInPlace(ctx.matrixUtil.toArray(ctx.currentModelMat)), 0);
+
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 				if (MINIMISE_NATIVE_CALLS_FFP)
@@ -2997,7 +3012,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				if (ctx.currentModelViewMat.m00 == Double.NEGATIVE_INFINITY)
 				ctx.currentModelViewMat.mul(ctx.currentViewMat, ctx.currentModelMat);
 	
-				gl.glUniformMatrix4fv(locs.glModelViewMatrix, 1, true, ctx.matrixUtil.toArray(ctx.currentModelViewMat), 0);
+				if (gl.isGL2ES3())
+					gl.glUniformMatrix4fv(locs.glModelViewMatrix, 1, true, ctx.matrixUtil.toArray(ctx.currentModelViewMat), 0);
+				else
+					gl.glUniformMatrix4fv(locs.glModelViewMatrix, 1, false,
+							Jogl2es2MatrixUtil.transposeInPlace(ctx.matrixUtil.toArray(ctx.currentModelViewMat)), 0);
+
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 	
@@ -3023,8 +3043,13 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				ctx.matrixUtil.invert(ctx.currentModelViewMatInverse);
 				}
 	
-				//gl.glUniformMatrix4fv(locs.glModelViewMatrixInverse, 1, false, ctx.toFB(ctx.currentModelViewMatInverse));
-				gl.glUniformMatrix4fv(locs.glModelViewMatrixInverse, 1, true, ctx.matrixUtil.toArray(ctx.currentModelViewMatInverse), 0);
+				
+				if (gl.isGL2ES3())
+					gl.glUniformMatrix4fv(locs.glModelViewMatrixInverse, 1, true, ctx.matrixUtil.toArray(ctx.currentModelViewMatInverse), 0);
+				else
+					gl.glUniformMatrix4fv(locs.glModelViewMatrixInverse, 1, false,
+							Jogl2es2MatrixUtil.transposeInPlace(ctx.matrixUtil.toArray(ctx.currentModelViewMatInverse)), 0);
+
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 	
@@ -3050,8 +3075,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				if (ctx.currentModelViewProjMat.m00 == Double.NEGATIVE_INFINITY)
 				ctx.currentModelViewProjMat.mul(ctx.currentProjMat, ctx.currentModelViewMat);
 	
-				//gl.glUniformMatrix4fv(locs.glModelViewProjectionMatrix, 1, false, ctx.toFB(ctx.currentModelViewProjMat));
-				gl.glUniformMatrix4fv(locs.glModelViewProjectionMatrix, 1, true, ctx.matrixUtil.toArray(ctx.currentModelViewProjMat), 0);
+				if (gl.isGL2ES3())
+					gl.glUniformMatrix4fv(locs.glModelViewProjectionMatrix, 1, true, ctx.matrixUtil.toArray(ctx.currentModelViewProjMat), 0);
+				else
+					gl.glUniformMatrix4fv(locs.glModelViewProjectionMatrix, 1, false,
+							Jogl2es2MatrixUtil.transposeInPlace(ctx.matrixUtil.toArray(ctx.currentModelViewProjMat)), 0);
+				
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 	
@@ -3078,8 +3107,12 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 				if (ctx.currentNormalMat.m00 == Double.NEGATIVE_INFINITY)
 				Jogl2es2MatrixUtil.transposeInvert(ctx.currentModelViewMat, ctx.currentNormalMat);
 	
-				//gl.glUniformMatrix3fv(locs.glNormalMatrix, 1, false, ctx.toFB(ctx.currentNormalMat));
-				gl.glUniformMatrix3fv(locs.glNormalMatrix, 1, true, ctx.matrixUtil.toArray(ctx.currentNormalMat), 0);
+				if (gl.isGL2ES3())
+					gl.glUniformMatrix3fv(locs.glNormalMatrix, 1, true, ctx.matrixUtil.toArray(ctx.currentNormalMat), 0);
+				else
+					gl.glUniformMatrix3fv(locs.glNormalMatrix, 1, false,
+							Jogl2es2MatrixUtil.transposeInPlace(ctx.matrixUtil.toArray(ctx.currentNormalMat)), 0);
+				
 				if (DO_OUTPUT_ERRORS)
 					outputErrors(ctx);
 				if (MINIMISE_NATIVE_CALLS_FFP)
@@ -5744,9 +5777,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		// gl.glTexParameteri(target, GL2ES3.GL_TEXTURE_BASE_LEVEL, baseLevel);
 
 		// http://stackoverflow.com/questions/12767917/is-using-gl-nearest-mipmap-or-gl-linear-mipmap-for-gl-texture-min-filter-con
-		// so hopefully ES2 just assumes the mip maps given are correct and ignores this call
+		// ES2 throws a 1280 invalid enum here
 
-		gl.glTexParameteri(target, GL2ES3.GL_TEXTURE_MAX_LEVEL, maximumLevel);
+		if (gl.isGL2ES3())
+			gl.glTexParameteri(target, GL2ES3.GL_TEXTURE_MAX_LEVEL, maximumLevel);
 		// gl.glTexParameterf(target, GL2ES3.GL_TEXTURE_MIN_LOD, minimumLOD);
 		// gl.glTexParameterf(target, GL2ES3.GL_TEXTURE_MAX_LOD, maximumLOD);
 

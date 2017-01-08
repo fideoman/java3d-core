@@ -875,9 +875,27 @@ class Jogl2es2MatrixUtil
 		return matFB3x3;
 	}
 
-	// Not needed generally as transpose can be called on the inteface with gl
 	public static float[] transposeInPlace(float[] src)
 	{
+		if (src.length == 9)
+		{			
+			float temp;
+
+			temp = src[3];
+			src[3] = src[1];
+			src[1] = temp;
+
+			temp = src[6];
+			src[6] = src[2];
+			src[2] = temp;
+
+			temp = src[7];
+			src[7] = src[5];
+			src[5] = temp;
+			
+		}
+		else if (src.length == 16)
+		{
 		float v1 = src[1];
 		float v2 = src[2];
 		float v3 = src[3];
@@ -901,8 +919,13 @@ class Jogl2es2MatrixUtil
 		src[13] = v7;
 		src[14] = v11;
 		//src[15] = src[15];
-
+		}
+		else
+		{
+			throw new UnsupportedOperationException("Only 9 or 16 length float arrays can be transposed!");
+		}
 		return src;
+
 	}
 
 	// ignores the higher 16 bits
