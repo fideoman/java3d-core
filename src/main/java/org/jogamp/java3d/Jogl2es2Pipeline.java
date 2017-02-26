@@ -5335,7 +5335,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		if (OUTPUT_PER_FRAME_STATS)
 			((Jogl2es2Context) ctx).perFrameStats.updateRenderingAttributes++;
 
-		GL2ES2 gl = ((Jogl2es2Context) ctx).gl2es2();
+		GL2ES2 gl = null;// get late expensive
 
 		Jogl2es2Context joglesctx = ((Jogl2es2Context) ctx);
 		if (joglesctx.gl_state.depthBufferEnableOverride != depthBufferEnable || joglesctx.gl_state.depthBufferEnable != depthBufferEnable
@@ -5988,19 +5988,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			assert false;
 		}
 
-		// FIXME: geometries go black if this is the case (no mipmap)
-		// so to disable automipmap, must set it to false in texture I guess?
-		// see above glGenMipMap once on pure ES2 (if on pure ES2?)
-		if (useAutoMipMap)
-		{
-			throw new UnsupportedOperationException("Disable auto mip map generation!\n" + VALID_FORMAT_MESSAGE);
-			// gl.glTexParameteri(target, GL2ES2.GL_GENERATE_MIPMAP, GL2ES2.GL_TRUE);
-		}
-		else
-		{
-			// should default to false
-			// gl.glTexParameteri(target, GL2ES2.GL_GENERATE_MIPMAP, GL2ES2.GL_FALSE);
-		}
+		boolean createMipMaps = useAutoMipMap;
 
 		int format = 0;
 
@@ -6104,6 +6092,7 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			{
 				if (format == -1)
 				{
+					
 					ByteBuffer bb = (ByteBuffer) data;
 
 					gl.glCompressedTexImage2D(target, level, internalFormat, width, height, boundaryWidth, bb.limit(), bb);
@@ -6186,6 +6175,15 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 		else
 		{
 			assert false;
+		}
+
+		if(createMipMaps && level == 0)
+		{
+			gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_MIN_FILTER, GL2ES2.GL_LINEAR_MIPMAP_LINEAR);
+			gl.glHint(GL.GL_GENERATE_MIPMAP_HINT, GL.GL_NICEST);
+			gl.glGenerateMipmap(target);
+			// as a new feature that happens seldom, output errors
+			outputErrors(ctx);
 		}
 
 		if (DO_OUTPUT_ERRORS)
@@ -7214,11 +7212,11 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 			cv.textureExtendedFeatures |= Canvas3D.TEXTURE_NON_POWER_OF_TWO;
 		}
 
-		//autoMipMapGeneration disabled
-		/*if (gl.isExtensionAvailable("GL_SGIS_generate_mipmap"))
+		//autoMipMapGeneration
+		//if (gl.isExtensionAvailable("GL_SGIS_generate_mipmap"))
 		{
 			cv.textureExtendedFeatures |= Canvas3D.TEXTURE_AUTO_MIPMAP_GENERATION;
-		}*/
+		}
 
 	}
 
