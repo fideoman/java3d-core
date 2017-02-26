@@ -109,11 +109,22 @@ public abstract class WakeupCondition extends Object {
     /**
      * this sets the conditionMet flag.
      */
-    void setConditionMet(int id, Boolean checkSchedulingRegion) {
-
-	if (!conditionMet) {
+	// re-use previous to avoid object creation, if nothing is stillusing it
+	private J3dMessage prevMessage;
+	void setConditionMet(int id, Boolean checkSchedulingRegion)
+	{
+		if (!conditionMet)
+		{
 	    conditionMet = true;
-	    J3dMessage message = new J3dMessage();
+			J3dMessage message = null;
+			if (prevMessage != null && prevMessage.getRefcount() == 0)
+			{
+				message = prevMessage;
+			}
+			else
+			{
+				message = new J3dMessage();
+			}
 	    message.type = J3dMessage.COND_MET;
 	    message.threads = J3dThread.UPDATE_BEHAVIOR;
 	    message.universe = behav.universe;
@@ -121,6 +132,7 @@ public abstract class WakeupCondition extends Object {
 	    message.args[1] = checkSchedulingRegion;
 	    message.args[2] = this;
 	    VirtualUniverse.mc.processMessage(message);
+			prevMessage = message;
 	}
     }
 

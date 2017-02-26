@@ -151,10 +151,12 @@ abstract class SceneGraphObjectRetained extends IndexedObject
     void traverse(boolean sameLevel, int level) {
 
 	System.err.println();
-        for (int i = 0; i < level; i++) {
+		for (int i = 0; i < level; i++)
+		{
              System.err.print(".");
         }
-        System.err.print(this);
+		System.err.print(
+				this.source.getName() + " ret:" + this.getClass().getSimpleName() + " source:" + this.source.getClass().getSimpleName());
     }
 
     /**

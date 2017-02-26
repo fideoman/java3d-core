@@ -122,22 +122,35 @@ ArrayList<NodeRetained> childTransformLinks = new ArrayList<NodeRetained>(1);
    * the passed transform.
    * @param t1 the transform to be copied
    */
+	// re-use previous to avoid object creation, if nothing is still using it
+	private J3dMessage prevMessage;
+	private Transform3D trans = new Transform3D();
   void setTransform(Transform3D t1) {
+       
+      //int i, j;
       J3dMessage tchangeMessage = null;
-      int i, j;
-      Transform3D trans = null;
+	  if (prevMessage != null && prevMessage.getRefcount() == 0)
+	  {
+		  tchangeMessage = prevMessage;
+	  }
+	  else
+	  {
+		  tchangeMessage = new J3dMessage();
+		  // trans will still be in use as well in prev message re-create
+		  trans = new Transform3D();
+	  }
 
       if (staticTransform != null) {
 	  // this writeable transformGroup has a static transform
 	  // merged into this node
 
-      	  trans = new Transform3D(staticTransform.transform);
+      	  trans.set(staticTransform.transform);
 	  trans.mul(t1);
 
       	  transform.setWithLock(trans);
 
       } else {
-      	  trans = new Transform3D(t1);
+      	  trans.set(t1);
       	  transform.setWithLock(t1);
       }
 
@@ -151,7 +164,6 @@ ArrayList<NodeRetained> childTransformLinks = new ArrayList<NodeRetained>(1);
 	      throw new BadTransformException(J3dI18N.getString("ViewPlatformRetained0"));
 	  }
 
-	  tchangeMessage = new J3dMessage();
 	  tchangeMessage.type = J3dMessage.TRANSFORM_CHANGED;
 	  tchangeMessage.threads = targetThreads;
 	  tchangeMessage.args[1] = this;
@@ -160,6 +172,7 @@ ArrayList<NodeRetained> childTransformLinks = new ArrayList<NodeRetained>(1);
 	  tchangeMessage.universe = universe;
 	  //System.err.println("TransformGroupRetained --- TRANSFORM_CHANGED " + this);
 	  VirtualUniverse.mc.processMessage(tchangeMessage);
+	  prevMessage = tchangeMessage;
       }
       dirtyBoundsCache();
   }
@@ -415,12 +428,13 @@ ArrayList<NodeRetained> childTransformLinks = new ArrayList<NodeRetained>(1);
 	for (int i = 0; i < level; i++) {
 	     System.err.print(".");
 	}
-	System.err.print(this);
+	System.err.print(
+			this.source.getName() + " ret:" + this.getClass().getSimpleName() + " source:" + this.source.getClass().getSimpleName());
 
 	if (isStatic()) {
 	    System.err.print(" (s)");
 	} else {
-	    System.err.print(" (w)");
+	    System.err.print(" (non-s)");
 	}
 	System.err.println();
 	System.err.println(transform.toString());
