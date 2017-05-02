@@ -9388,6 +9388,10 @@ class Jogl2es2Pipeline extends Jogl2es2DEPPipeline
 	{
 		if (VERBOSE)
 			System.err.println("JoglPipeline.getBestConfiguration()");
+		
+		//PJ this bug turns up in web start from 7u25 onwards, this fix should have been called from here from the beginning
+        // as getBestConfiguration calls new Component eventually where the bug surfaces
+        checkAppContext();
 
 		// Create a GLCapabilities based on the GraphicsConfigTemplate3D
 		final GLCapabilities caps = new GLCapabilities(profile);
