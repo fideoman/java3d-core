@@ -33,7 +33,7 @@ abstract class Jogl2es2DEPPipeline extends Pipeline
 			+ "Decaling is not supported. \n"//
 			+ "Model Clip is not supported and must be reimplemented in shaders \n"//
 			+ "QuadArray or IndexedQuadArray cannot be supported. \n"//
-			+ "Texture Coordinate generation cannot be supported. \n" //
+			+ "Texture Coordinate generation ignored, must be done in shaders. \n" //
 			+ "Texture Lod, Filter, Sharpen and Combine cannot be supported. \n"//
 			+ "Texture3D cannot be supported. \n"//
 			+ "Accum style anti-aliasing cannot be supported. \n"//
