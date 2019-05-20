@@ -61,7 +61,7 @@ class VersionInfo extends Object {
      * This string should be modified to indicate the name of the
      * individual(s) or organization(s) who modified the code.
      */
-    private static final String VENDOR_DEVELOPER = null;
+    private static final String VENDOR_DEVELOPER = "jogamp";
 
 
     /**
@@ -70,7 +70,7 @@ class VersionInfo extends Object {
      * to this string.  This string should be null if no dev string is
      * desired.
      */
-    private static final String VERSION_DEV_STRING = null;
+    private static final String VERSION_DEV_STRING = "jogamp";
 
     // -------------------------------------------------------------------
     // -------------------------------------------------------------------
@@ -86,7 +86,7 @@ class VersionInfo extends Object {
     /**
      * Constant that indicates whether or not this is a debug build.
      */
-    static final boolean isDebug = ${is_debug};
+    static final boolean isDebug = false;
 
     /**
      * This static final variable is used to enable debugging and
@@ -100,7 +100,7 @@ class VersionInfo extends Object {
      * This parameter is controlled by ant via the build.xml file. The
      * default value is true.
      */
-    static final boolean isDevPhase = ${is_dev_phase};
+    static final boolean isDevPhase = false;
 
     /**
      * This static final variable is used indicate a production
@@ -109,7 +109,7 @@ class VersionInfo extends Object {
      * This parameter is controlled by ant via the build.xml file. The
      * default value is false.
      */
-    static final boolean isProduction = ${is_production};
+    static final boolean isProduction = true;
 
     /**
      * If this flag is set to true, the verbose buildtime string
@@ -118,14 +118,14 @@ class VersionInfo extends Object {
      * This parameter is controlled by ant via the build.xml file. The
      * default value is true.
      */
-    private static final boolean useVerboseBuildTime = ${use_verbose_buildtime};
+    private static final boolean useVerboseBuildTime = false;
 
     /**
      * String identifying the type of build, one of:
      * "daily", "stable", "beta", "fcs", or "patch". The default value
      * is "daily".
      */
-    private static final String BUILD_TYPE = "${build.type}";
+    private static final String BUILD_TYPE = "patch";
 
     /**
      * String identifying the build number in the format
@@ -136,7 +136,7 @@ class VersionInfo extends Object {
      * For production builds, this string appears parenthetically,
      * after the first space.
      */
-    private static final String VERSION_BUILD = "${version_build}";
+    private static final String VERSION_BUILD = "1.7";
 
     /**
      * String identifying the particular build of the 3D API, for
@@ -149,14 +149,14 @@ class VersionInfo extends Object {
      * This us used as part of the j3d.version that appears before the
      * optional first space.
      */
-    private static final String VERSION_SUFFIX = "${version_suffix}";
+    private static final String VERSION_SUFFIX = "-rc1";
 
     /**
      * Date stamp
      *
      * This is only used for daily builds.
      */
-    private static final String BUILDTIME = "${buildtime}";
+    private static final String BUILDTIME = "";
 
     /**
      * Specification version (major and minor version only). This
@@ -167,12 +167,12 @@ class VersionInfo extends Object {
     /**
      * Specification vendor.
      */
-    private static final String SPECIFICATION_VENDOR = "${build.spec.vendor}";
+    private static final String SPECIFICATION_VENDOR = "jogamp";
 
     /**
      * Primary implementation vendor.
      */
-    private static final String VENDOR_PRIMARY = "${build.impl.vendor}";
+    private static final String VENDOR_PRIMARY = "jogamp";
 
     /**
      * Base version number. This is the major.minor.subminor version
@@ -180,7 +180,7 @@ class VersionInfo extends Object {
      * major and minor version <i>must</i> be the same as the specification
      * version.
      */
-    private static final String VERSION_BASE = "${project.version}";
+    private static final String VERSION_BASE = "1.7";
 
     /**
      * Boolean flag indicating that the version of the 3D API is
@@ -216,7 +216,7 @@ class VersionInfo extends Object {
      * will automatically be added) and before the optional dev
      * string.  This string is only used for non-fcs builds.
      */
-    private static final String BUILDTIME_VERBOSE = "${buildtime_verbose}";
+    private static final String BUILDTIME_VERBOSE = "false";
 
     private static boolean isNonEmpty(String str) {
 	if ((str == null) || (str.length() == 0)) {
@@ -231,8 +231,6 @@ class VersionInfo extends Object {
     static {
 	final boolean isPatchBuild = BUILD_TYPE.equals("patch");
 	final boolean isFcsBuild = BUILD_TYPE.equals("fcs");
-	final boolean isBetaBuild = BUILD_TYPE.equals("beta");
-	final boolean isStableBuild = BUILD_TYPE.equals("stable");
 	final boolean isDailyBuild = BUILD_TYPE.equals("daily");
 
 	// Assign the vendor by concatenating primary and developer
@@ -283,7 +281,7 @@ class VersionInfo extends Object {
 	    }
 	}
 
-	if (useVerboseBuildTime && isNonEmpty(BUILDTIME_VERBOSE)) {
+	if (useVerboseBuildTime) {
 	    tmpVersionFull += " " + BUILDTIME_VERBOSE;
 	}
 
